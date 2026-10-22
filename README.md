@@ -65,6 +65,19 @@ src/
   generated/prisma/  generated client (git-ignored)
 ```
 
+## Troubleshooting
+
+**`npm run db:studio` fails with “not supported for the `file:./prisma/dev.db` protocol”.**
+Prisma Studio 7.10.1 rejects *relative* SQLite URLs. `scripts/db-studio.mjs` works
+around it by passing an absolute `file:///` URL (and by avoiding `%20`, which
+Studio doesn't decode). It prints the URL it starts on — the port may differ from
+5555. To force one: `npm run db:studio -- --port 5555`.
+
+**Camera / QR testing on a phone.** `localhost` won't resolve from the phone, and
+camera APIs need HTTPS. Set `NEXT_PUBLIC_SITE_URL` to your machine's LAN IP
+(`http://192.168.x.x:3000`) for QR codes, and test the in-browser scanner on the
+deployed HTTPS URL.
+
 ## Notes for the report
 
 **SQLite, but with a driver adapter.** Prisma 7 compiles queries in TypeScript
