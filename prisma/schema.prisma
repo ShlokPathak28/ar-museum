@@ -1,0 +1,193 @@
+// Dharohar AR — Prisma schema
+// Provider: SQLite (dev) -> Postgres (prod) later.
+// Notes for SQLite: no native enums, no scalar lists. Enum-like fields are
+// strings validated by Zod in src/lib/schemas.ts; arrays are JSON text.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// Roles: VISITOR | ADMIN
+// Status: DRAFT | PUBLISHED | ARCHIVED
+// ScanMethod: QR | MANUAL | AR | VR
+
+model Room {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  name        String
+  floor       String
+  panoramaUrl String?
+  exhibits    Exhibit[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Exhibit {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  code        String   @unique // printed under the QR, e.g. "TH01"
+  title       String
+  subtitle    String?
+  era         String
+  yearStart   Int?
+  yearEnd     Int?
+  roomId      String
+  summary     String
+  body        String
+  facts       String   @default("[]") // JSON string[]
+  heroImage   String
+  audioUrl    String?
+  transcript  String?
+  modelUrl    String?
+  modelUsdz   String?
+  modelScale  Float    @default(1)
+  tags        String   @default("") // comma separated
+  status      String   @default("DRAFT")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  room     Room       @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  hotspots Hotspot[]
+  gallery  Media[]
+  scans    Scan[]
+  reviews  Review[]
+  stops    TourStop[]
+  stamps   Stamp[]
+
+  @@index([roomId])
+  @@index([status])
+}
+
+model Hotspot {
+  id        String  @id @default(cuid())
+  exhibitId String
+  label     String
+  body      String
+  posX      Float   @default(0)
+  posY      Float   @default(0)
+  posZ      Float   @default(0)
+  order     Int     @default(0)
+
+  exhibit Exhibit @relation(fields: [exhibitId], references: [id], onDelete: Cascade)
+
+  @@index([exhibitId])
+}
+
+model Media {
+  id        String  @id @default(cuid())
+  exhibitId String?
+  url       String
+  kind      String // IMAGE | AUDIO | VIDEO | MODEL | PANORAMA
+  alt       String
+  credit    String?
+  order     Int     @default(0)
+
+  exhibit Exhibit? @relation(fields: [exhibitId], references: [id], onDelete: Cascade)
+
+  @@index([exhibitId])
+}
+
+model Tour {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  description String
+  theme       String
+  durationMin Int
+  status      String   @default("DRAFT")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  stops       TourStop[]
+}
+
+model TourStop {
+  id        String  @id @default(cuid())
+  tourId    String
+  exhibitId String
+  position  Int
+  blurb     String?
+
+  tour    Tour    @relation(fields: [tourId], references: [id], onDelete: Cascade)
+  exhibit Exhibit @relation(fields: [exhibitId], references: [id], onDelete: Cascade)
+
+  @@unique([tourId, exhibitId])
+  @@index([tourId, position])
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  role         String   @default("VISITOR") // VISITOR | ADMIN
+  emailVerified Boolean @default(false)
+  image        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  reviews Review[]
+  stamps  Stamp[]
+  scans   Scan[]
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  exhibitId String
+  userId    String
+  rating    Int // 1..5
+  body      String
+  status    String   @default("VISIBLE") // VISIBLE | HIDDEN
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  exhibit Exhibit @relation(fields: [exhibitId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, exhibitId]) // one review per exhibit per visitor
+  @@index([exhibitId, status, createdAt])
+}
+
+model Scan {
+  id        String   @id @default(cuid())
+  exhibitId String
+  method    String   @default("QR") // QR | MANUAL | AR | VR
+  deviceId  String
+  userId    String?
+  createdAt DateTime @default(now())
+
+  exhibit Exhibit @relation(fields: [exhibitId], references: [id], onDelete: Cascade)
+  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([exhibitId, createdAt])
+  @@index([deviceId])
+}
+
+model Stamp {
+  id          String   @id @default(cuid())
+  deviceId    String
+  userId      String?
+  exhibitId   String
+  firstSeenAt DateTime @default(now())
+
+  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  exhibit Exhibit @relation(fields: [exhibitId], references: [id], onDelete: Cascade)
+
+  @@unique([deviceId, exhibitId])
+  @@index([userId])
+}
+
+model Feedback {
+  id        String   @id @default(cuid())
+  exhibitId String?
+  rating    Int
+  message   String
+  contact   String?
+  status    String   @default("NEW") // NEW | READ | CLOSED
+  createdAt DateTime @default(now())
+}
+
+// Better Auth tables (sessions, accounts, verification) are added in week 2.
