@@ -43,6 +43,7 @@ The museum's example was acquired in the 1920s and has been in the collection si
       "Hand-moulded in two parts, then joined",
       "Fired in an open pit, not a kiln",
       "The legs were never strong enough to stand",
+      "Left ear reconstructed in the 1920s and left visible",
     ]),
     heroImage: "/images/exhibits/terracotta-horse.svg",
     tags: "terracotta,sculpture,votives",
@@ -86,8 +87,20 @@ This base once held a hookah; the pipe and bowl are lost.`,
       "Zinc-copper alloy, not iron",
       "Blackened with fort soil rich in ammonium salts",
       "Silver inlay added before the final dip",
+      "Pipe and bowl are lost; only the base survives",
     ]),
     heroImage: "/images/exhibits/bidri-hookah-base.svg",
+    modelUrl: "/models/baluster-vase.glb",
+    gallery: [
+      {
+        url: "/models/baluster-vase.glb",
+        kind: "MODEL",
+        alt: "Placeholder 3D model used to test the exhibit viewer",
+        credit:
+          "Baluster vase, National Museum of Asian Art (F1980.191) — Smithsonian Open Access, CC0",
+        order: 1,
+      },
+    ],
     tags: "metalwork,bidri,deccan",
     status: "PUBLISHED",
     hotspots: [
@@ -121,6 +134,7 @@ Red comes from vermilion, yellow from orpiment, black from lamp soot.`,
       "Cloth primed with tamarind seed and chalk",
       "Made to be narrated, panel by panel",
       "Mineral pigments: vermilion, orpiment, soot",
+      "First and last panels are missing",
     ]),
     heroImage: "/images/exhibits/pattachitra-scroll.svg",
     tags: "textile,painting,odisha",
@@ -146,8 +160,20 @@ The dent on one side is post-acquisition damage, recorded in the 1974 condition 
       "Graduated by hammering the wall outward",
       "Rim stamp names the standard and the maker",
       "False measures could be seized and destroyed",
+      "Dent on one side recorded in the 1974 report",
     ]),
     heroImage: "/images/exhibits/brass-measuring-vessel.svg",
+    modelUrl: "/models/stoneware-jug.glb",
+    gallery: [
+      {
+        url: "/models/stoneware-jug.glb",
+        kind: "MODEL",
+        alt: "Placeholder 3D model used to test the exhibit viewer",
+        credit:
+          "Stoneware jug by Thomas Commeraw, NMAAHC (2011.61) — Smithsonian Open Access, CC0",
+        order: 1,
+      },
+    ],
     tags: "brass,measurement,trade",
     status: "PUBLISHED",
   },
@@ -171,10 +197,11 @@ The indigo has survived better than the madder red, which has faded to a warm br
       "Drawn with a bamboo pen, not block printed",
       "Made for export, borders simplified",
       "Indigo outlasted the madder red",
+      "Border reduced to repeating florals for European buyers",
     ]),
     heroImage: "/images/exhibits/kalamkari-fragment.svg",
     tags: "textile,trade,dye",
-    status: "PUBLISHED",
+    status: "DRAFT",
   },
   {
     slug: "inlaid-writing-box",
@@ -196,10 +223,22 @@ Boxes like this travelled with clerks and scribes, which is why so many survive 
       "Lid converts into a sloped writing surface",
       "Compartmented tray for pens, ink and blotting sand",
       "Bone inlay set in lac, sanded flush",
+      "Repaired hinges are common on surviving examples",
     ]),
     heroImage: "/images/exhibits/inlaid-writing-box.svg",
+    modelUrl: "/models/patent-model-box.glb",
+    gallery: [
+      {
+        url: "/models/patent-model-box.glb",
+        kind: "MODEL",
+        alt: "Placeholder 3D model used to test the exhibit viewer",
+        credit:
+          "Refrigerator patent model by Thomas Elkins, NMAAHC (2012.113.2) — Smithsonian Open Access, CC0",
+        order: 1,
+      },
+    ],
     tags: "woodwork,inlay,writing",
-    status: "DRAFT",
+    status: "PUBLISHED",
   },
 ];
 
@@ -252,7 +291,7 @@ async function main() {
   }
 
   const exhibits = new Map<string, string>();
-  for (const { room, hotspots, ...exhibit } of EXHIBITS) {
+  for (const { room, hotspots, gallery, ...exhibit } of EXHIBITS) {
     const roomId = rooms.get(room);
     if (!roomId) throw new Error(`Unknown room: ${room}`);
 
@@ -261,6 +300,7 @@ async function main() {
         ...exhibit,
         roomId,
         hotspots: hotspots ? { create: hotspots } : undefined,
+        gallery: gallery ? { create: gallery } : undefined,
       },
     });
     exhibits.set(created.slug, created.id);

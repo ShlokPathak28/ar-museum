@@ -16,10 +16,12 @@
     "db:studio": "node scripts/db-studio.mjs"
   },
   "dependencies": {
+    "@google/model-viewer": "^4.4.0",
     "@libsql/client": "^0.18.0",
     "@prisma/adapter-libsql": "^7.10.1",
     "@prisma/client": "^7.10.1",
     "next": "16.4.2",
+    "qrcode": "^1.5.4",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },
