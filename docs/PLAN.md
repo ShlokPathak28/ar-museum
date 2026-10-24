@@ -289,7 +289,8 @@ printed card ──▶ https://site.app/x/TH01        (edge handler)
 <model-viewer ar ar-modes="webxr scene-viewer quick-look"
               ar-scale="auto" ios-src="/models/terracotta.usdz">
 ```
-- Android: ARCore places the model on the desk at real scale.
+- **HTTPS is mandatory.** WebXR (`immersive-ar`) only exists in a secure context. Over plain `http://` Chrome hides it, model-viewer falls back to handing the model to the Google app's Scene Viewer, and that hand-off fails on the test phone (verified week 0).
+- With HTTPS, Android Chrome opens the camera inside the page (WebXR) — no second app, no Google-app dependency. This is the path the demo uses; `npm run dev:https` + `docs/HTTPS.md`.
 - iOS: Quick Look needs `.usdz` (Reality Converter on a Mac) — optional, Android is enough for the demo.
 - Hide the button when `modelViewer.canActivateAR` is false. No CV, no lighting conditions, no tracking images.
 - Laptop fallback: recorded clip + "open this on your phone" QR.
@@ -411,6 +412,8 @@ Write `docs/STATE-DECISIONS.md` with a paragraph on "why not Redux everywhere" a
 
 **If you get extra time:** cardboard stereo, i18n (en/hi), offline PWA, analytics charts, MindAR tracking.
 
+**Status (end of week 0):** AR placement verified on the Android demo phone. It works over HTTPS via WebXR; the Scene Viewer fallback does not work on that handset, so HTTPS is now part of the dev loop (`npm run dev:https`, `docs/HTTPS.md`). Week 1 shipped: home, gallery, exhibit page with viewer, `/markers` with server-rendered QRs. Remaining for week 1: gallery search/filter, 3D hotspots, `sitemap.ts` / `robots.ts` / `opengraph-image.tsx`.
+
 **Cut order:** RTK slice → analytics charts → VR hotspots → iOS USDZ → tours → VR mode. 3D + AR survive every cut.
 
 ---
@@ -429,7 +432,9 @@ Write `docs/STATE-DECISIONS.md` with a paragraph on "why not Redux everywhere" a
 
 | Risk | P | I | Mitigation |
 |---|---|---|---|
-| AR fails on demo phone | L | M | verify week 0; `canActivateAR` check; recording; Android-first |
+| AR fails on demo phone | L | M | verified week 0 over HTTPS/WebXR; `canActivateAR` check; recording; Android-first |
+| AR only works in a secure context | H | H | `npm run dev:https` with a mkcert cert + local CA installed on the phone (`docs/HTTPS.md`); deployed site is HTTPS anyway |
+| Scene Viewer hand-off fails | H | M | do not depend on it — HTTPS makes model-viewer use WebXR inside Chrome |
 | iOS USDZ missing | M | L | Android-only AR, stated openly |
 | Venue wifi / no HTTPS | H | M | deployed HTTPS; cached pages; offline video; manual code entry |
 | 3D assets too heavy | M | M | 3 models only, Draco/meshopt, lazy chunk |

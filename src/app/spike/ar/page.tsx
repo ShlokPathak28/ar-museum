@@ -19,11 +19,21 @@ export default function ArSpikePage() {
 
       <p className="mt-5 max-w-2xl text-sm leading-relaxed text-ink-soft">
         One model, one question: does AR placement work on the demo phone? The asset is a CC0 glass
-        vase from the Khronos glTF sample set — a stand-in, not exhibit content. It is offered from
-        two origins because Android hands the model URL to Scene Viewer, which only accepts an
-        HTTPS address with a glTF MIME type. A LAN <span className="font-mono">http://</span> URL
-        cannot be placed in AR, however reachable it is from the phone.
+        vase from the Khronos glTF sample set — a stand-in, not exhibit content.
       </p>
+
+      <div className="mt-5 max-w-2xl rounded-xl border border-ink/10 bg-sand-deep/50 p-5 text-sm leading-relaxed">
+        <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-ink-soft">Result</p>
+        <p className="mt-2">
+          Placement works over <strong>HTTPS</strong>, where model-viewer uses <strong>WebXR</strong>{" "}
+          and the camera opens inside Chrome. Over plain <span className="font-mono">http://</span>{" "}
+          Chrome hides WebXR, so the viewer falls back to handing the model to the Google app&apos;s
+          Scene Viewer — and that hand-off fails on the test device. Every route that needs the
+          camera, the AR session or device orientation therefore runs on{" "}
+          <span className="font-mono">npm run dev:https</span>. See{" "}
+          <span className="font-mono">docs/HTTPS.md</span>.
+        </p>
+      </div>
 
       <div className="mt-8">
         <ArSpikePanel />

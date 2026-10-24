@@ -56,3 +56,7 @@ skills-lock.json
 prisma/*.db
 prisma/*.db-journal
 
+# local HTTPS: dev certificate, its key, and the CA cert served to the phone
+/certs/
+/public/dev-ca.crt
+
