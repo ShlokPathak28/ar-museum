@@ -30,6 +30,7 @@ type ModelViewerProps = {
 export default function ModelViewer({ src, alt, className, onStatus }: ModelViewerProps) {
   const ref = useRef<ModelViewerElement | null>(null);
   const [ready, setReady] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -70,6 +71,7 @@ export default function ModelViewer({ src, alt, className, onStatus }: ModelView
       })
       .catch((error: unknown) => {
         console.error("model-viewer failed to load", error);
+        if (!cancelled) setFailed(true);
       });
 
     return () => {
@@ -106,9 +108,13 @@ export default function ModelViewer({ src, alt, className, onStatus }: ModelView
       </button>
       <div
         slot="poster"
-        className="flex h-full w-full items-center justify-center text-sm text-ink-soft"
+        className="flex h-full w-full items-center justify-center px-6 text-center text-sm text-ink-soft"
       >
-        {ready ? "Loading model…" : "Preparing viewer…"}
+        {failed
+          ? "The 3D viewer could not load. Reload the page, and check the browser console if it happens again."
+          : ready
+            ? "Loading model…"
+            : "Preparing viewer…"}
       </div>
     </model-viewer>
   );
