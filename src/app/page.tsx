@@ -1,4 +1,6 @@
 import Image from "next/image";
+import Link from "next/link";
+
 import { prisma } from "@/lib/db";
 
 // Revalidate the landing page every minute (ISR demo).
@@ -42,7 +44,7 @@ export default async function HomePage() {
           </span>
         </div>
         <span className="rounded-full border border-ink/15 px-3 py-1 font-mono text-[11px] uppercase tracking-widest text-ink-soft">
-          Week 0 · scaffold
+          Week 1 · collection
         </span>
       </header>
 
@@ -78,7 +80,7 @@ export default async function HomePage() {
             QR route
           </p>
           <div className="mt-4 rounded-xl bg-sand-deep px-4 py-3 font-mono text-sm">
-            /x/TH01
+            /x/BH02
           </div>
           <p className="mt-4 text-sm leading-relaxed text-ink-soft">
             Each printed card carries a short code. The code is also typeable —
@@ -117,33 +119,43 @@ export default async function HomePage() {
       <section className="mt-20">
         <div className="flex items-end justify-between gap-4 border-b border-ink/10 pb-4">
           <h2 className="font-serif text-2xl">From the collection</h2>
-          <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-ink-soft">
-            {exhibits.length} of 6
-          </span>
+          <div className="flex items-baseline gap-4">
+            <Link
+              href="/exhibits"
+              className="font-mono text-[11px] uppercase tracking-[0.2em] text-ochre hover:underline"
+            >
+              All exhibits →
+            </Link>
+            <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-ink-soft">
+              {exhibits.length} of 6
+            </span>
+          </div>
         </div>
 
         <div className="mt-6 grid gap-6 sm:grid-cols-3">
           {exhibits.map((exhibit) => (
             <article key={exhibit.id} className="group">
-              <div className="overflow-hidden rounded-xl border border-ink/10 bg-sand-deep">
-                <Image
-                  src={exhibit.heroImage}
-                  alt={exhibit.title}
-                  width={1200}
-                  height={900}
-                  unoptimized
-                  className="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                />
-              </div>
-              <div className="mt-3 flex items-baseline justify-between gap-3">
-                <h3 className="font-medium">{exhibit.title}</h3>
-                <span className="font-mono text-[11px] text-ink-soft">
-                  {exhibit.code}
-                </span>
-              </div>
-              <p className="text-sm text-ink-soft">
-                {exhibit.era} · {exhibit.room.name}
-              </p>
+              <Link href={`/exhibits/${exhibit.slug}`} className="block">
+                <div className="overflow-hidden rounded-xl border border-ink/10 bg-sand-deep">
+                  <Image
+                    src={exhibit.heroImage}
+                    alt={exhibit.title}
+                    width={1200}
+                    height={900}
+                    unoptimized
+                    className="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                  />
+                </div>
+                <div className="mt-3 flex items-baseline justify-between gap-3">
+                  <h3 className="font-medium group-hover:text-ochre">{exhibit.title}</h3>
+                  <span className="font-mono text-[11px] text-ink-soft">
+                    {exhibit.code}
+                  </span>
+                </div>
+                <p className="text-sm text-ink-soft">
+                  {exhibit.era} · {exhibit.room.name}
+                </p>
+              </Link>
             </article>
           ))}
         </div>

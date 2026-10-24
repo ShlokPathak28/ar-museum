@@ -18,9 +18,11 @@ export default function ArSpikePage() {
       </header>
 
       <p className="mt-5 max-w-2xl text-sm leading-relaxed text-ink-soft">
-        One model, one question: does AR placement work on the demo phone? Serve this page over the
-        LAN and open it on the device. The asset is a CC0 glass vase from the Khronos glTF sample
-        set — a stand-in, not exhibit content.
+        One model, one question: does AR placement work on the demo phone? The asset is a CC0 glass
+        vase from the Khronos glTF sample set — a stand-in, not exhibit content. It is offered from
+        two origins because Android hands the model URL to Scene Viewer, which only accepts an
+        HTTPS address with a glTF MIME type. A LAN <span className="font-mono">http://</span> URL
+        cannot be placed in AR, however reachable it is from the phone.
       </p>
 
       <div className="mt-8">

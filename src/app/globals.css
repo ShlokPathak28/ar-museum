@@ -28,3 +28,9 @@
     @apply bg-ochre/20;
   }
 }
+
+@media print {
+  @page { size: A6; margin: 0; }
+  .markers-page { max-width: none; padding: 0; }
+  .markers-page article { break-inside: avoid; page-break-inside: avoid; }
+}
