@@ -3,12 +3,24 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import ModelViewer from "@/components/three/ModelViewer";
+import ExhibitViewer from "@/components/exhibit/ExhibitViewer";
 import { prisma } from "@/lib/db";
+import { absoluteUrl, siteName, siteUrl } from "@/lib/site";
+import type { HotspotData } from "@/types/exhibit";
 
 export const revalidate = 60;
 
 type Params = { params: Promise<{ slug: string }> };
+
+/** Exhibits published at build time get prerendered; anything added later is ISR. */
+export async function generateStaticParams() {
+  const exhibits = await prisma.exhibit.findMany({
+    where: { status: "PUBLISHED" },
+    select: { slug: true },
+  });
+
+  return exhibits.map((exhibit) => ({ slug: exhibit.slug }));
+}
 
 /** `facts` is a JSON string column, so it has to be parsed defensively. */
 function parseFacts(raw: string): string[] {
@@ -34,6 +46,13 @@ function formatRange(start: number | null, end: number | null): string | null {
   return formatYear((start ?? end) as number);
 }
 
+/** schema.org wants an ISO date; the collection only knows a year. */
+function isoYear(year: number | null): string | undefined {
+  if (year === null || year === 0) return undefined;
+  const magnitude = String(Math.abs(year)).padStart(4, "0");
+  return year < 0 ? `-${magnitude}` : magnitude;
+}
+
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { slug } = await params;
   const exhibit = await prisma.exhibit.findUnique({
@@ -43,13 +62,22 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
   if (!exhibit) return { title: "Exhibit not found" };
 
+  const description = exhibit.subtitle ?? exhibit.summary;
+
   return {
     title: exhibit.title,
-    description: exhibit.subtitle ?? exhibit.summary,
+    description,
+    alternates: { canonical: `/exhibits/${slug}` },
     openGraph: {
-      title: `${exhibit.title} · Dharohar`,
-      description: exhibit.subtitle ?? exhibit.summary,
-      images: [{ url: exhibit.heroImage, alt: exhibit.title }],
+      type: "article",
+      title: `${exhibit.title} · ${siteName}`,
+      description,
+      url: absoluteUrl(`/exhibits/${slug}`),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${exhibit.title} · ${siteName}`,
+      description,
     },
   };
 }
@@ -78,8 +106,50 @@ export default async function ExhibitPage({ params }: Params) {
   const modelUrl = exhibit.modelUrl ?? modelMedia?.url;
   const period = formatRange(exhibit.yearStart, exhibit.yearEnd);
 
+  const hotspots: HotspotData[] = exhibit.hotspots.map((hotspot) => ({
+    id: hotspot.id,
+    label: hotspot.label,
+    body: hotspot.body,
+    x: hotspot.posX,
+    y: hotspot.posY,
+    z: hotspot.posZ,
+  }));
+
+  const caption = modelMedia?.credit
+    ? `${modelMedia.credit}. Placeholder asset until this object is scanned.`
+    : "Placeholder model, pending a scan of the object.";
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CreativeWork",
+    name: exhibit.title,
+    alternateName: exhibit.subtitle ?? undefined,
+    description: exhibit.summary,
+    identifier: exhibit.code,
+    url: absoluteUrl(`/exhibits/${exhibit.slug}`),
+    image: absoluteUrl(exhibit.heroImage),
+    dateCreated: isoYear(exhibit.yearStart),
+    temporalCoverage: exhibit.era,
+    keywords: exhibit.tags
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter(Boolean)
+      .join(", "),
+    isPartOf: {
+      "@type": "Museum",
+      name: "Dharohar Museum of Material Culture",
+      url: siteUrl,
+    },
+    contentLocation: { "@type": "Place", name: exhibit.room.name },
+  };
+
   return (
     <main className="mx-auto w-full max-w-6xl px-5 pb-24 sm:px-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
+      />
+
       <header className="flex items-center justify-between gap-4 py-6">
         <Link href="/exhibits" className="font-mono text-[11px] uppercase tracking-widest text-ink-soft hover:text-ink">
           ← Collection
@@ -102,16 +172,13 @@ export default async function ExhibitPage({ params }: Params) {
           ) : null}
 
           {modelUrl ? (
-            <section className="mt-8">
-              <div className="h-[55vh] min-h-[320px] overflow-hidden rounded-2xl border border-ink/10 bg-sand-deep">
-                <ModelViewer src={modelUrl} alt={exhibit.title} />
-              </div>
-              <p className="mt-3 text-xs leading-relaxed text-ink-soft">
-                {modelMedia?.credit
-                  ? `${modelMedia.credit}. Shown as a placeholder until this object is scanned.`
-                  : "Placeholder model, pending a scan of the object."}
-              </p>
-            </section>
+            <ExhibitViewer
+              modelUrl={modelUrl}
+              alt={exhibit.title}
+              hotspots={hotspots}
+              caption={caption}
+              usdzUrl={exhibit.modelUsdz}
+            />
           ) : (
             <div className="mt-8 rounded-2xl border border-dashed border-ink/20 bg-paper/60 px-6 py-10 text-center">
               <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-ink-soft">
@@ -176,22 +243,6 @@ export default async function ExhibitPage({ params }: Params) {
                   </li>
                 ))}
               </ul>
-            </section>
-          ) : null}
-
-          {exhibit.hotspots.length > 0 ? (
-            <section className="rounded-xl border border-ink/10 bg-paper p-5">
-              <h2 className="font-mono text-[11px] uppercase tracking-[0.2em] text-ink-soft">
-                Details
-              </h2>
-              <dl className="mt-3 space-y-3 text-sm leading-relaxed">
-                {exhibit.hotspots.map((hotspot) => (
-                  <div key={hotspot.id}>
-                    <dt className="font-medium">{hotspot.label}</dt>
-                    <dd className="text-ink-soft">{hotspot.body}</dd>
-                  </div>
-                ))}
-              </dl>
             </section>
           ) : null}
 

@@ -12,7 +12,7 @@
 | # | Beat | Tech on screen |
 |---|------|----------------|
 | 1 | Laptop: home → gallery → search/filter → exhibit page, fast and shareable (OG preview) | SSG/ISR, `next/image`, Metadata API |
-| 2 | Phone scans the QR card on the desk → exhibit page opens in ~1s | `/x/[code]` edge redirect, ISR cache hit |
+| 2 | Phone scans the QR card on the desk → exhibit page opens in ~1s | `/x/[code]` redirect, ISR cache hit |
 | 3 | Drag to rotate the model, tap hotspot ("cracked glaze"), switch **wireframe → clay → textured** | `model-viewer`, hotspots, 3 material states |
 | 4 | Tap **View in your room** → model drops onto the desk at real scale | WebXR / ARCore Scene Viewer |
 | 5 | Tap **VR walkthrough** → 360° gallery, look around by moving the phone, hotspot jumps to another exhibit | react-three-fiber, gyro, fullscreen |
@@ -30,7 +30,7 @@
    phone (QR/AR/VR) │  Next.js 16 App Router                  │
    desktop          │  RSC + SSG/ISR · Server Actions          │
                     │  /exhibits · /scan · /rooms · /passport  │
-                    │  /studio · /api/v1 · /x/[code] (edge)    │
+                    │  /studio · /api/v1 · /x/[code]           │
                     └───────┬──────────────────────┬──────────┘
                             │                      │
                     ┌───────▼───────┐      ┌───────▼────────┐
@@ -50,7 +50,7 @@ Everything ships from `next build` to one Vercel project. No monorepo, no worksp
 | `/passport` | SSR (dynamic) | personalised, must not be cached |
 | `/scan`, 3D, AR, VR | client only (`dynamic(..., { ssr: false })`) | camera + WebGL |
 | `/studio/**` | SSR + Server Actions | admin, always fresh |
-| `/x/[code]` | edge runtime | fast redirect, logs the scan |
+| `/x/[code]` | Node route handler | redirect + Prisma scan log (see §6 — not edge, see note) |
 
 ---
 
@@ -68,7 +68,7 @@ Everything ships from `next build` to one Vercel project. No monorepo, no worksp
 | Server state | RSC + Prisma; TanStack Query 5.104 for client search/infinite | |
 | Client state | Zustand 5.0 (passport) · Context (camera/AR) · RTK 2.13 (studio draft) | CO6 comparison |
 | 3D / AR | `@google/model-viewer` 4.4 | built-in AR, hotspots, material swap |
-| VR 360 | `three` + `@react-three/fiber` + `drei` | sphere pano, gyro, stereo |
+| VR 360 | `three` + `@react-three/fiber` + `drei` | sphere pano, gyro, stereo — plain `three` is already installed in week 1 for the reconstruction states |
 | QR | `qrcode` (generate), `qr-scanner` (camera scan) | |
 | Media | Cloudinary free tier | transforms + uploads |
 | Tests | Vitest + RTL, Playwright, MSW | |
@@ -96,8 +96,10 @@ app/
 │  ├─ reviews/page.tsx                moderation
 │  └─ analytics/page.tsx
 ├─ login/page.tsx · register/page.tsx
-├─ x/[code]/route.ts                  short QR link → redirect + scan log (edge)
-├─ api/v1/…                           REST for client components
+├─ spike/ar · spike/panorama          throwaway week-0 probes (noindex)
+├─ x/[code]/route.ts                  short QR link → redirect + scan log (Node)
+├─ api/qr/[code]/route.ts             QR PNG for a short code
+├─ api/v1/…                           REST for client components (week 2)
 ├─ api/auth/[...all]/route.ts         Better Auth
 ├─ sitemap.ts · robots.ts · opengraph-image.tsx
 └─ markers/page.tsx                   printable QR cards
@@ -260,7 +262,7 @@ model Media {
 ## 6. QR mechanics
 
 ```
-printed card ──▶ https://site.app/x/TH01        (edge handler)
+printed card ──▶ https://site.app/x/TH01        (route handler)
                      ├─ log Scan { method: QR, deviceId }
                      └─ 302 ─▶ /exhibits/terracotta-horse?src=qr
                                      └─▶ ISR cache hit, instant
@@ -269,7 +271,7 @@ printed card ──▶ https://site.app/x/TH01        (edge handler)
 ```
 
 - `code` is short and typeable (`TH01`) — the manual fallback when no camera.
-- `/x/[code]/route.ts` runs on the **edge runtime**, logs without blocking the redirect.
+- `/x/[code]/route.ts` is a **Node** route handler, not edge: it writes the scan through Prisma/libSQL, and that driver has no edge build. The redirect waits on a single indexed insert; if that ever costs too much, the fix is to hand the log to `waitUntil(fetch(...))` and move the route to edge, not to drop the analytics.
 - `/api/qr/[code]` returns a PNG; `/markers` prints A6 cards with title + code.
 - **Dev gotcha:** `localhost` QRs won't scan from a phone. Use `NEXT_PUBLIC_SITE_URL=http://<LAN-IP>:3000` while testing — but camera APIs need HTTPS, so test the in-browser scanner on the deployed URL or via a tunnel.
 
@@ -282,6 +284,7 @@ printed card ──▶ https://site.app/x/TH01        (edge handler)
 - `camera-controls`, `auto-rotate`, `environment-image`, `shadow-intensity`, `poster`.
 - **Hotspots:** `<button slot="hotspot-1" data-position="…">` → real DOM popover (keyboard accessible).
 - **Reconstruction tab:** same GLB in three material states — wireframe → clay → textured — plus a short methodology note.
+  `model-viewer` exposes no material API, so this tab is a separate three.js scene (`ReconstructionViewer`) that loads the same file on demand. It shares the page with the viewer but never with its bundle: the tab is `dynamic(..., { ssr: false })`.
 - Only 3 exhibits ship models; each < 5 MB (Draco/meshopt, 2K textures), lazily loaded.
 
 ### 7.2 AR mode (one tap, no markers)
@@ -336,7 +339,7 @@ MindAR image tracking ("point at the object") — bonus only, never the demo's s
 | GET | `/api/v1/exhibits?q=&room=&tag=&cursor=` | public | search + infinite scroll |
 | GET | `/api/v1/exhibits/[slug]` | public | single exhibit |
 | GET | `/api/v1/me` | session | role, passport, my reviews |
-| GET | `/x/[code]` | public | QR redirect + scan log (edge) |
+| GET | `/x/[code]` | public | QR redirect + scan log |
 | GET | `/api/qr/[code]` | public | QR PNG |
 | POST | `/api/v1/scans` | public | idempotent on `clientEventId` |
 | POST | `/api/v1/stamps` | device/session | passport sync |
@@ -389,12 +392,12 @@ Write `docs/STATE-DECISIONS.md` with a paragraph on "why not Redux everywhere" a
 | Routing | App Router, route groups, nested layouts, `@modal` + intercepting route, dynamic `/x/[code]` |
 | Rendering | `generateStaticParams` + ISR on exhibits, SSR passport, Suspense streaming, client search |
 | Fetching | RSC → Prisma; `fetch(..., { next: { tags } })`; `revalidateTag` on publish |
-| API | route handlers, dynamic segments, edge runtime |
+| API | route handlers, dynamic + catch-all segments, `NextResponse` redirects, cookies set from a route handler |
 | Server Actions | exhibit CRUD, upload, publish, reorder, review moderation (`useActionState`, `useOptimistic`, `revalidatePath`) |
 | Auth/RBAC | Better Auth, roles, middleware + server checks |
 | DB | Prisma schema, migrations, seed, CRUD, Zod at the boundary |
 | Perf/SEO | Metadata API, dynamic OG, `sitemap.ts`, JSON-LD, `next/image`, `dynamic()` for 3D |
-| Advanced | parallel + intercepting routes, edge runtime, i18n (stretch) |
+| Advanced | parallel + intercepting routes (week 4), generated OG images via `next/og`, i18n (stretch). Edge runtime is **not** used — see §6 |
 | Deploy | Vercel, `env.ts` Zod validation, logs |
 
 ---
@@ -412,9 +415,39 @@ Write `docs/STATE-DECISIONS.md` with a paragraph on "why not Redux everywhere" a
 
 **If you get extra time:** cardboard stereo, i18n (en/hi), offline PWA, analytics charts, MindAR tracking.
 
-**Status (end of week 0):** AR placement verified on the Android demo phone. It works over HTTPS via WebXR; the Scene Viewer fallback does not work on that handset, so HTTPS is now part of the dev loop (`npm run dev:https`, `docs/HTTPS.md`). Week 1 shipped: home, gallery, exhibit page with viewer, `/markers` with server-rendered QRs. Remaining for week 1: gallery search/filter, 3D hotspots, `sitemap.ts` / `robots.ts` / `opengraph-image.tsx`.
+**Status (end of week 0):** AR placement verified on the Android demo phone. It works over HTTPS via WebXR; the Scene Viewer fallback does not work on that handset, so HTTPS is now part of the dev loop (`npm run dev:https`, `docs/HTTPS.md`). Design tokens live in `globals.css` (`@theme`), and `/spike/panorama` probes the equirectangular path the VR mode will need.
+
+**Status (end of week 1):** home, collection grid, exhibit pages, 3D viewer + hotspots + the three material states, `/markers`, `/api/qr/[code]`, ISR via `generateStaticParams`, canonical metadata, JSON-LD, `sitemap.ts`, `robots.ts`, generated OG images. Gallery search/filter is **client-side over the prerendered grid** (URL-synced with `history.replaceState`) rather than the TanStack Query version in §10 — that version needs the `/api/v1` routes from week 2. Remaining: all of week 2.
 
 **Cut order:** RTK slice → analytics charts → VR hotspots → iOS USDZ → tours → VR mode. 3D + AR survive every cut.
+
+---
+
+## 18. Progress log
+
+Keep this section append-only: one entry per completed week, with what shipped,
+what changed from the plan, and what the next week inherits.
+
+### Week 0 — closed
+
+- Next 16 app, Tailwind 4 tokens, Prisma 7 + libSQL, seeded catalogue (6 exhibits / 2 rooms / 2 tours).
+- AR spike verified on the Android phone over HTTPS/WebXR. Scene Viewer hand-off confirmed broken on that handset → HTTPS is mandatory (`npm run dev:https`, `docs/HTTPS.md`).
+- Added the other half of the week-0 spike: `/spike/panorama`, a draggable/gyro equirectangular probe with a runtime-drawn calibration card (no asset, no licence). Feeds week 3's `/rooms`.
+- Extra dependencies installed early: `three` (+ types) for the recreation states; `zod` promoted to a direct dependency (`src/lib/env.ts` already imported it).
+
+### Week 1 — closed
+
+- **Gallery:** `/exhibits` stays static; filters (text, room, tag, has-3D) run in the browser over the prerendered grid. State is mirrored into `?q=&room=&tag=&model=1` so links are shareable; `popstate` re-applies them. No network per keystroke.
+- **3D:** hotspot buttons are real `<button>` elements positioned by `model-viewer`, mirrored by a chip row under the viewer and an `aria-live` detail panel — keyboard users never depend on hitting a 3D target.
+- **Reconstruction:** `three` scene with textured / clay / wireframe states, auto-rotating, normalised to one on-screen size, disposed on unmount.
+- **SEO/ISR:** `generateStaticParams` + `revalidate = 60` on exhibit routes, canonical URLs, Twitter card, JSON-LD (`CreativeWork`), `sitemap.ts`, `robots.ts` (blocks `/studio`, `/api/`, `/spike`, `/markers`, `/x/`), generated OG image at `/` and per exhibit.
+- **QR:** `/markers` renders SVG cards server-side; `/api/qr/[code]` returns a 1024 px PNG (`404` for unknown or unpublished codes); both resolve the Host header so LAN scans use the LAN address.
+- Seed gained hotspots for all three modelled exhibits, positioned against the GLB bounds (metres, model origin at the floor of the bounding box) — the earlier Bidri hotspot sat off the surface.
+- Not verified this week: real-device rendering of the new viewers, and a browser pass on the filter interaction. Both need the phone/HTTPS loop; everything else is covered by `next build` + HTTP checks.
+
+### Week 2 — next
+
+API routes (`/api/v1/*`), Better Auth + roles, middleware, `/scan`, `/passport` (Zustand + stamp sync), reviews (RHF + Zod, `useOptimistic`).
 
 ---
 
@@ -498,7 +531,7 @@ These five are what make it an AR museum project instead of a CRUD app. Expect v
 | **Vitest + RTL** | *(INT257: "Testing Overview")* | Fast, Vite-native, tests hooks/schemas cheaply | Keep (cheap) |
 | **Playwright + MSW** | "Testing Overview" | 3 end-to-end flows; MSW only exists to serve Playwright | Optional — drop if week 5 is tight |
 | **Neon (Postgres)** | "Database Connectivity" | Free serverless Postgres, works with Prisma out of the box | Keep |
-| **Vercel** | "Deployment Platforms" | Zero-config Next, ISR + edge work exactly as developed | Keep |
+| **Vercel** | "Deployment Platforms" | Zero-config Next; ISR and route handlers behave as developed | Keep |
 
 ### 17.4 Deliberately not used
 

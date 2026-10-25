@@ -27,6 +27,14 @@
   ::selection {
     @apply bg-ochre/20;
   }
+
+  /* One focus token for the whole site. Model hotspots, filter pills and the
+     viewer tabs all live in shadow-ish or overflow-hidden boxes, so a visible
+     ring is the only thing that tells a keyboard user where they are. */
+  :focus-visible {
+    outline: 2px solid var(--color-ochre);
+    outline-offset: 2px;
+  }
 }
 
 @media print {

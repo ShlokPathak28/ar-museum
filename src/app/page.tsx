@@ -44,7 +44,7 @@ export default async function HomePage() {
           </span>
         </div>
         <span className="rounded-full border border-ink/15 px-3 py-1 font-mono text-[11px] uppercase tracking-widest text-ink-soft">
-          Week 1 · collection
+          Collection · 2 rooms
         </span>
       </header>
 

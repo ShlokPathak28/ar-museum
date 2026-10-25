@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { Fraunces, IBM_Plex_Mono, Instrument_Sans } from "next/font/google";
+
+import { siteDescription, siteName, siteUrl } from "@/lib/site";
+
 import "./globals.css";
 
 // Display: Fraunces — a variable serif with real ink-trap character, close to
@@ -26,23 +29,28 @@ const mono = IBM_Plex_Mono({
   display: "swap",
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
     default: "Dharohar — AR Museum Guide",
     template: "%s · Dharohar",
   },
-  description:
-    "Scan an exhibit, hear its history, inspect it in 3D, place it in your room with AR, and walk the gallery in 360°.",
+  description: siteDescription,
+  applicationName: siteName,
   openGraph: {
     type: "website",
-    siteName: "Dharohar",
+    siteName,
     title: "Dharohar — AR Museum Guide",
-    description:
-      "Scan an exhibit, hear its history, inspect it in 3D, place it in your room with AR, and walk the gallery in 360°.",
+    description: siteDescription,
     url: siteUrl,
+    locale: "en_IN",
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 

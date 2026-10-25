@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import ArSpikePanel from "./ArSpikePanel";
 
@@ -10,11 +11,19 @@ export const metadata: Metadata = {
 export default function ArSpikePage() {
   return (
     <main className="mx-auto w-full max-w-6xl px-5 py-10 sm:px-8">
-      <header className="flex items-baseline justify-between gap-4 border-b border-ink/10 pb-4">
+      <header className="flex flex-wrap items-baseline justify-between gap-4 border-b border-ink/10 pb-4">
         <h1 className="font-serif text-3xl">AR spike</h1>
-        <span className="rounded-full border border-ink/15 px-3 py-1 font-mono text-[11px] uppercase tracking-widest text-ink-soft">
-          Throwaway · delete after week 3
-        </span>
+        <div className="flex items-baseline gap-4">
+          <Link
+            href="/spike/panorama"
+            className="font-mono text-[11px] uppercase tracking-widest text-ochre hover:underline"
+          >
+            Panorama spike →
+          </Link>
+          <span className="rounded-full border border-ink/15 px-3 py-1 font-mono text-[11px] uppercase tracking-widest text-ink-soft">
+            Throwaway · delete after week 3
+          </span>
+        </div>
       </header>
 
       <p className="mt-5 max-w-2xl text-sm leading-relaxed text-ink-soft">

@@ -98,6 +98,12 @@ export default async function MarkersPage() {
                   Scan or type
                 </p>
                 <p className="mt-1 font-mono text-2xl tracking-[0.15em]">{card.code}</p>
+                <a
+                  href={`/api/qr/${card.code}`}
+                  className="mt-1 inline-block font-mono text-[10px] uppercase tracking-widest text-ochre hover:underline print:hidden"
+                >
+                  QR PNG →
+                </a>
               </div>
               <div
                 aria-hidden

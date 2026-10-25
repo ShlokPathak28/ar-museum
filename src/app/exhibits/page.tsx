@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
+import { Suspense } from "react";
 
+import ExhibitBrowser, { type BrowseExhibit } from "@/components/exhibit/ExhibitBrowser";
+import ExhibitCard from "@/components/exhibit/ExhibitCard";
 import { prisma } from "@/lib/db";
 
 export const revalidate = 60;
@@ -9,7 +11,15 @@ export const revalidate = 60;
 export const metadata: Metadata = {
   title: "The collection",
   description: "Every exhibit in Dharohar's collection, with 3D models where available.",
+  alternates: { canonical: "/exhibits" },
 };
+
+function splitTags(raw: string): string[] {
+  return raw
+    .split(",")
+    .map((tag) => tag.trim())
+    .filter(Boolean);
+}
 
 export default async function ExhibitsPage() {
   const exhibits = await prisma.exhibit.findMany({
@@ -20,6 +30,21 @@ export default async function ExhibitsPage() {
       gallery: { where: { kind: "MODEL" }, select: { id: true }, take: 1 },
     },
   });
+
+  // The fallback grid below only covers the moment before the browser hydrates;
+  // filtering is client-side, so the page itself stays statically rendered.
+  const browse: BrowseExhibit[] = exhibits.map((exhibit) => ({
+    slug: exhibit.slug,
+    code: exhibit.code,
+    title: exhibit.title,
+    era: exhibit.era,
+    roomName: exhibit.room.name,
+    summary: exhibit.summary,
+    heroImage: exhibit.heroImage,
+    hasModel: Boolean(exhibit.modelUrl) || exhibit.gallery.length > 0,
+    roomSlug: exhibit.room.slug,
+    tags: splitTags(exhibit.tags),
+  }));
 
   return (
     <main className="mx-auto w-full max-w-6xl px-5 pb-24 sm:px-8">
@@ -48,39 +73,20 @@ export default async function ExhibitsPage() {
         </p>
       </section>
 
-      <div className="mt-10 grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
-        {exhibits.map((exhibit) => (
-          <article key={exhibit.id}>
-            <Link href={`/exhibits/${exhibit.slug}`} className="group block">
-              <div className="overflow-hidden rounded-xl border border-ink/10 bg-sand-deep">
-                <Image
-                  src={exhibit.heroImage}
-                  alt={exhibit.title}
-                  width={1200}
-                  height={900}
-                  unoptimized
-                  className="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                />
-              </div>
-              <div className="mt-3 flex items-baseline justify-between gap-3">
-                <h2 className="font-medium group-hover:text-ochre">{exhibit.title}</h2>
-                <span className="font-mono text-[11px] text-ink-soft">{exhibit.code}</span>
-              </div>
-              <p className="mt-1 text-sm text-ink-soft">
-                {exhibit.era} · {exhibit.room.name}
-              </p>
-              <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-ink-soft">
-                {exhibit.summary}
-              </p>
-            </Link>
-            {exhibit.gallery.length > 0 ? (
-              <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-ochre/10 px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest text-ochre">
-                3D model
-              </p>
-            ) : null}
-          </article>
-        ))}
-      </div>
+      <Suspense
+        fallback={
+          <>
+            <div className="mt-8 h-[172px] rounded-xl border border-ink/10 bg-paper" aria-hidden />
+            <div className="mt-10 grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+              {browse.map((exhibit) => (
+                <ExhibitCard key={exhibit.slug} exhibit={exhibit} showSummary />
+              ))}
+            </div>
+          </>
+        }
+      >
+        <ExhibitBrowser exhibits={browse} />
+      </Suspense>
     </main>
   );
 }
