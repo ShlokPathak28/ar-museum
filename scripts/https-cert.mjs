@@ -47,16 +47,27 @@ function lanAddresses() {
   // Every non-loopback IPv4 address on the machine. The Wi-Fi address changes
   // between networks, and this laptop also carries Hyper-V/VirtualBox adapters,
   // so naming them all means whichever one the phone reaches still validates.
+  //
+  // The address on the default-route interface is printed first, so the "open
+  // this on the phone" hint names the real LAN address rather than VirtualBox.
   try {
     const output = execFileSync(
       "powershell.exe",
       [
         "-NoProfile",
         "-Command",
-        "Get-NetIPAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue |",
-        "  Where-Object { $_.IPAddress -notlike '127.*' -and $_.IPAddress -notlike '169.254.*' } |",
-        "  Select-Object -ExpandProperty IPAddress",
-      ].join(""),
+        [
+          "$route = Get-NetRoute -DestinationPrefix '0.0.0.0/0' -ErrorAction SilentlyContinue",
+          "  | Sort-Object RouteMetric | Select-Object -First 1;",
+          "if ($route) {",
+          "  (Get-NetIPAddress -AddressFamily IPv4 -InterfaceIndex $route.InterfaceIndex",
+          "    -ErrorAction SilentlyContinue | Select-Object -First 1).IPAddress",
+          "}",
+          "Get-NetIPAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue |",
+          "  Where-Object { $_.IPAddress -notlike '127.*' -and $_.IPAddress -notlike '169.254.*' } |",
+          "  Select-Object -ExpandProperty IPAddress",
+        ].join(""),
+      ],
       { encoding: "utf8" },
     );
     const addresses = output
