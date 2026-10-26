@@ -500,6 +500,8 @@ what changed from the plan, and what the next week inherits.
 
 **Idea.** Give each room a page with its own visual identity — surface, accent and a small motif drawn from the objects inside it — instead of every room wearing the same sand-and-ochre skin. The room page becomes the missing middle of the visit: a QR card opens one object, but nothing currently explains why these six objects sit together. A themed room page is that threshold — what the room is about, what is in it, a 360° preview once Week 3 lands, and a way into each exhibit. The theme stays on the room page; the exhibit page keeps the museum's global frame.
 
+**Not to be confused with categories.** A room here is a *place* — a floor, a 360° view, a wall a QR card hangs on — not an object type. Browsing by type (clay, metal, textile, wood) stays on `/exhibits` as the existing tag filters; this proposal adds no category model.
+
 **Current state.**
 
 - `Room` has `id`, `slug`, `name`, `floor`, `panoramaUrl`, `createdAt`, `updatedAt`. Both seeded rooms (`material-worlds` / "Material Worlds", `everyday-objects` / "Everyday Objects") have `panoramaUrl: null`.
@@ -626,6 +628,7 @@ All six are nullable or defaulted, so the seed and the existing rows keep workin
 
 - One Next.js app, one deploy, one URL
 - 6 exhibits, 2 rooms, 3 models, 1 panorama
+- Rooms are physical spaces (floor + panorama), not object categories; category browsing stays as tag filters on `/exhibits`
 - Fictional "Dharohar Museum"
 - Two roles: VISITOR + ADMIN; guests browse anonymously
 - Reviews: one per exhibit per visitor, admin-moderated
