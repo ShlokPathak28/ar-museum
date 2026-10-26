@@ -469,7 +469,17 @@ what changed from the plan, and what the next week inherits.
 - **Demo accounts (local DB):** `admin@dharohar.test` / `visitor@dharohar.test`, password `museum-pass-2026`.
 - **Certificate:** `scripts/https-cert.mjs` now covers **every** non-loopback IPv4, not just the default-route interface. The Wi-Fi address flipped mid-test (`10.118.43.217` → `172.19.227.217`) and the default route also picks up virtual adapters, so naming them all is the only stable option. The canonical dev URL is now `https://localhost:3000`.
 
-**Week 2 — still to come:** `/scan` (camera + manual code), `/passport`, reviews (RHF + Zod, `useOptimistic`), `/api/v1/*`, middleware guards for `/studio`.
+**Scan slice (26 Oct)** — closed
+
+- `/scan` is a static ISR page (`revalidate = 60`) listing the published codes, with the camera panel as a client island. The camera starts on a button press, not on load: no surprise permission prompt, and no double-start race with React's development remount.
+- Scanner is `qr-scanner` (dynamic `import()` so the 59 kB engine is not in the first bundle). It uses the browser's native `BarcodeDetector` when available and its own worker otherwise; both paths are bundled by Turbopack.
+- A scan accepts a full URL (a card printed for a LAN address) or a bare code. The path is re-based on the **current** origin, so `https://172.19.x.x:3000/x/BH02` still works when the site is open on `localhost`.
+- Navigation is `window.location.assign`, not `router.push`: `/x/[code]` is a route handler that 307s and sets the device cookie, which the client router cannot follow.
+- Fallbacks: manual short-code entry, a tappable list of published codes, torch toggle when the camera reports a flash, and named messages for `NotAllowedError` / `NotFoundError` / `NotReadableError` / insecure context.
+- `/scan` added to `sitemap.xml`; the home header and the QR card both link to it.
+- Verified: `/scan` 200 with all five published codes (KT05 is `DRAFT` and correctly absent), `/x/BH02` 307 to the exhibit, home links present. **Not verified:** a real camera scan — that needs the phone.
+
+**Week 2 — still to come:** `/passport`, reviews (RHF + Zod, `useOptimistic`), `/api/v1/*`, middleware guards for `/studio`.
 
 ---
 

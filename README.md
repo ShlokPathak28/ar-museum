@@ -4,7 +4,7 @@ Scan a QR code next to an exhibit and its page opens: narrated history, photogra
 an interactive 3D model, an AR mode that places the object in your room, and a 360°
 walkthrough of the gallery.
 
-**Live progress:** week 1 closed — gallery, 3D, QR, SEO/ISR. Week 2 in progress — auth done, `/scan` next.
+**Live progress:** week 1 closed — gallery, 3D, QR, SEO/ISR. Week 2 in progress — auth and `/scan` done, passport next.
 **Full plan:** [docs/PLAN.md](docs/PLAN.md)
 
 ---
@@ -114,7 +114,7 @@ those back to enums and arrays.
 
 - **Week 0** — repo, schema, seed, design tokens ✅
 - **Week 1** — gallery, exhibit page, 3D viewer, QR generation, SEO/ISR ✅
-- **Week 2** — auth ✅, `/scan`, passport, reviews
+- **Week 2** — auth ✅, `/scan` ✅, passport, reviews
 - **Week 3** — AR mode, 360° VR viewer
 - **Week 4** — tours, admin studio, moderation, analytics
 - **Week 5** — accessibility, tests, deploy, demo

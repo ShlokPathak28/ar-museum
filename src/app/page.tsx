@@ -48,6 +48,12 @@ export default async function HomePage() {
           <span className="hidden rounded-full border border-ink/15 px-3 py-1 font-mono text-[11px] uppercase tracking-widest text-ink-soft sm:inline">
             Collection · 2 rooms
           </span>
+          <Link
+            href="/scan"
+            className="rounded-full border border-ink/15 px-3 py-1 font-mono text-[11px] uppercase tracking-widest text-ink-soft transition-colors hover:border-ink/40 hover:text-ink"
+          >
+            Scan
+          </Link>
           <AuthMenu />
         </div>
       </header>
@@ -90,6 +96,12 @@ export default async function HomePage() {
             Each printed card carries a short code. The code is also typeable —
             the fallback when a camera is denied.
           </p>
+          <Link
+            href="/scan"
+            className="mt-3 inline-block font-mono text-[11px] uppercase tracking-[0.2em] text-ochre hover:underline"
+          >
+            Open the scanner →
+          </Link>
           <div className="mt-6 grid grid-cols-2 gap-3 text-sm">
             <div className="rounded-lg border border-ink/10 p-3">
               <div className="font-medium">6 exhibits</div>
