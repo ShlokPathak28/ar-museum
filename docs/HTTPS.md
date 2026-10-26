@@ -36,10 +36,16 @@ mkcert -cert-file certs/dev-cert.pem -key-file certs/dev-key.pem <lan-ip> localh
 `certs/` is gitignored — the key never leaves the machine.
 
 You normally do **not** need to run this by hand: `npm run dev:https` runs
-`scripts/https-cert.mjs` first, which finds the address that owns the default
-route and regenerates the certificate for it. That matters because the Wi-Fi
-address changes between networks, and a stale certificate makes the phone show
-"Your connection is not private" even when the CA is installed.
+`scripts/https-cert.mjs` first, which regenerates the certificate for
+**every** non-loopback IPv4 address on the machine plus `localhost`,
+`127.0.0.1` and `::1`. That matters twice over: the Wi-Fi address changes
+between networks, and the default route can also sit on a virtual adapter
+(Hyper-V, VirtualBox), so naming one address is not reliable. A stale
+certificate makes the phone show "Your connection is not private" even when
+the CA is installed.
+
+The canonical dev URL is `https://localhost:3000` (stable across network
+changes). Use the LAN address only when testing from the phone.
 
 ## Run
 
@@ -49,16 +55,19 @@ npm run dev:https
 
 The script prints the address to open, e.g. `https://10.118.43.217:3000`.
 
-`.env` must match the address you are testing from:
+`.env` keeps the stable canonical URL, with the LAN addresses only as extra
+allowed origins (Next dev blocks `/_next/*` from unlisted hosts):
 
 ```dotenv
-NEXT_PUBLIC_SITE_URL="https://<lan-ip>:3000"
-BETTER_AUTH_URL="https://<lan-ip>:3000"
-DEV_ALLOWED_ORIGINS="<lan-ip>"
+NEXT_PUBLIC_SITE_URL="https://localhost:3000"
+BETTER_AUTH_URL="https://localhost:3000"
+DEV_ALLOWED_ORIGINS="<lan-ip>,localhost,127.0.0.1"
 ```
 
 `DEV_ALLOWED_ORIGINS` is what lets the phone load `/_next/*`. If it is missing,
 the page renders but never hydrates and the viewer stays on "Preparing viewer".
+QR cards and redirects use the request's `Host` header, so a card generated on
+the LAN address still points at the LAN address.
 
 ## Trust the certificate on the Android phone (once per phone)
 

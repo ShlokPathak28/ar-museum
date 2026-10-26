@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import AuthMenu from "@/components/ui/AuthMenu";
 import { prisma } from "@/lib/db";
 
 // Revalidate the landing page every minute (ISR demo).
@@ -43,9 +44,12 @@ export default async function HomePage() {
             Museum of Material Culture
           </span>
         </div>
-        <span className="rounded-full border border-ink/15 px-3 py-1 font-mono text-[11px] uppercase tracking-widest text-ink-soft">
-          Collection · 2 rooms
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="hidden rounded-full border border-ink/15 px-3 py-1 font-mono text-[11px] uppercase tracking-widest text-ink-soft sm:inline">
+            Collection · 2 rooms
+          </span>
+          <AuthMenu />
+        </div>
       </header>
 
       <section className="grid gap-12 border-t border-ink/10 pt-14 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">

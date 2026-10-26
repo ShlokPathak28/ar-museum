@@ -453,9 +453,23 @@ what changed from the plan, and what the next week inherits.
 - **Open — model swap:** the three modelled exhibits still point at CC0 stand-ins (`baluster-vase`, `stoneware-jug`, `patent-model-box`). The intended `bidri-hookah-base` / `brass-measuring-vessel` / `inlaid-writing-box` GLBs are not in the repo, and Smithsonian returns 403 from this network, so the swap waits on the files landing in `public/models/`.
 - **Auth merge:** the `feat/auth-nextjs` branch is now on `main` as scaffolding. Dependencies are installed and the module typechecks against better-auth 1.7 (`prismaAdapter(prisma, { provider: "sqlite" })`, `nextCookies()`), but the Prisma schema has no `session` / `account` / `verification` tables yet, so `/api/auth/*` is not usable until week 2.
 
-### Week 2 — next
+### Week 2 — in progress
 
-API routes (`/api/v1/*`), Better Auth + roles, middleware, `/scan`, `/passport` (Zustand + stamp sync), reviews (RHF + Zod, `useOptimistic`).
+**Auth slice (26 Oct)** — closed
+
+- **Schema:** `Session`, `Account`, `Verification` added with the field names the Better Auth Prisma adapter expects (camelCase columns, no snake_case “tidying”). Migration `20261026143908_auth_tables`. `User` gained `sessions` / `accounts` relations; `role` stays a `String` (`VISITOR` | `ADMIN`) because SQLite has no enums.
+- **Config:** `src/lib/auth.ts` uses the app's single Prisma client, `emailAndPassword` (8-char minimum, auto sign-in), a seven-day session, `trustedOrigins` for localhost + 127.0.0.1, and `role` as an `additionalField` with `input: false` — posting `role: "ADMIN"` to `/api/auth/sign-up/email` still produces a `VISITOR`.
+- **Two bugs found while wiring it:**
+  - The option is `database`, not `databaseAdapter`. With the wrong key Better Auth silently falls back to an **in-memory** store: sign-up returned 200, sessions worked, and nothing reached SQLite. Caught by counting `User` rows directly instead of trusting the HTTP responses.
+  - The `jwt()` plugin expects a `jwks` table that this project does not need, and its schema check fails every auth request. Removed; `nextCookies()` is now the only plugin.
+  - `prisma migrate dev` did not regenerate the client, so `prisma.session` was `undefined` until `prisma generate` ran. The generated client is stale after a schema change — regenerate before restarting.
+- **Pages:** `/login` and `/register` (dynamic, `noindex`), both redirect to `/` when already signed in; `AuthMenu` in the home header reads the session **client-side** so the ISR home page stays static; `SignOutButton` calls `signOut()` then `router.refresh()`.
+- **Admin:** `npm run db:admin` lists accounts, `npm run db:admin -- email` promotes one, `-- --visitor` demotes. Accounts are created through `/register` so Better Auth owns the password hash; the script only flips `role`.
+- **Verified over HTTPS:** sign-up 200 + `__Secure-better-auth.session_token`, `get-session` returns `role=VISITOR`, sign-out 200, sign-in 200, wrong password 401 `INVALID_EMAIL_OR_PASSWORD`, `/login` 307 when signed in, password stored as a 161-char scrypt hash in `Account` (never plaintext), admin account returns `role=ADMIN`, role injection ignored.
+- **Demo accounts (local DB):** `admin@dharohar.test` / `visitor@dharohar.test`, password `museum-pass-2026`.
+- **Certificate:** `scripts/https-cert.mjs` now covers **every** non-loopback IPv4, not just the default-route interface. The Wi-Fi address flipped mid-test (`10.118.43.217` → `172.19.227.217`) and the default route also picks up virtual adapters, so naming them all is the only stable option. The canonical dev URL is now `https://localhost:3000`.
+
+**Week 2 — still to come:** `/scan` (camera + manual code), `/passport`, reviews (RHF + Zod, `useOptimistic`), `/api/v1/*`, middleware guards for `/studio`.
 
 ---
 

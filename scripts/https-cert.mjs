@@ -43,32 +43,30 @@ function findMkcert() {
   return null;
 }
 
-function lanAddress() {
-  // The interface that owns the default route is the one the phone can reach.
-  // Reading every adapter would pick up Hyper-V/WSL/VirtualBox addresses, which
-  // look like LAN addresses but are not on the phone's network.
+function lanAddresses() {
+  // Every non-loopback IPv4 address on the machine. The Wi-Fi address changes
+  // between networks, and this laptop also carries Hyper-V/VirtualBox adapters,
+  // so naming them all means whichever one the phone reaches still validates.
   try {
     const output = execFileSync(
       "powershell.exe",
       [
         "-NoProfile",
         "-Command",
-        [
-          "$route = Get-NetRoute -DestinationPrefix '0.0.0.0/0' -ErrorAction SilentlyContinue",
-          "  | Sort-Object RouteMetric | Select-Object -First 1;",
-          "if ($route) {",
-          "  (Get-NetIPAddress -AddressFamily IPv4 -InterfaceIndex $route.InterfaceIndex",
-          "    -ErrorAction SilentlyContinue | Select-Object -First 1).IPAddress",
-          "}",
-        ].join(""),
-      ],
+        "Get-NetIPAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue |",
+        "  Where-Object { $_.IPAddress -notlike '127.*' -and $_.IPAddress -notlike '169.254.*' } |",
+        "  Select-Object -ExpandProperty IPAddress",
+      ].join(""),
       { encoding: "utf8" },
-    ).trim();
-    if (/^\d+\.\d+\.\d+\.\d+$/.test(output)) return output;
+    );
+    const addresses = output
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => /^\d+\.\d+\.\d+\.\d+$/.test(line));
+    return [...new Set(addresses)];
   } catch {
-    // Fall through to the manual hint below.
+    return [];
   }
-  return null;
 }
 
 const mkcert = findMkcert();
@@ -80,23 +78,22 @@ if (!mkcert) {
   process.exit(0);
 }
 
-const ip = lanAddress();
-if (!ip) {
+const addresses = lanAddresses();
+if (addresses.length === 0) {
   console.warn("[https] Could not detect a LAN address; keeping the existing certificate.");
   process.exit(0);
 }
 
 mkdirSync(CERT_DIR, { recursive: true });
 
+const names = [...addresses, "localhost", "127.0.0.1", "::1"];
+
 try {
-  execFileSync(
-    mkcert,
-    ["-cert-file", CERT_FILE, "-key-file", KEY_FILE, ip, "localhost", "127.0.0.1", "::1"],
-    { stdio: "inherit" },
-  );
-  console.log(`[https] Certificate covers ${ip}, localhost, 127.0.0.1, ::1`);
-  console.log(`[https] Open https://${ip}:3000 on the phone.`);
-  console.log(`[https] NEXT_PUBLIC_SITE_URL should be https://${ip}:3000`);
+  execFileSync(mkcert, ["-cert-file", CERT_FILE, "-key-file", KEY_FILE, ...names], {
+    stdio: "inherit",
+  });
+  console.log(`[https] Certificate covers ${names.join(", ")}`);
+  console.log(`[https] Open https://${addresses[0]}:3000 on the phone.`);
 } catch (error) {
   console.warn(`[https] mkcert failed (${error.message}); keeping the existing certificate.`);
 }

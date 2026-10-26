@@ -4,7 +4,7 @@ Scan a QR code next to an exhibit and its page opens: narrated history, photogra
 an interactive 3D model, an AR mode that places the object in your room, and a 360°
 walkthrough of the gallery.
 
-**Live progress:** week 0 — scaffold, database, seed data.
+**Live progress:** week 1 closed — gallery, 3D, QR, SEO/ISR. Week 2 in progress — auth done, `/scan` next.
 **Full plan:** [docs/PLAN.md](docs/PLAN.md)
 
 ---
@@ -21,6 +21,19 @@ walkthrough of the gallery.
 | VR | `three` + `@react-three/fiber` (week 3) |
 | Auth | Better Auth (week 2) |
 | Media | Cloudinary (week 4) |
+
+## Demo accounts
+
+Local development only (they live in `prisma/dev.db`, not in the seed):
+
+| Role | Email | Password |
+|---|---|---|
+| Admin | `admin@dharohar.test` | `museum-pass-2026` |
+| Visitor | `visitor@dharohar.test` | `museum-pass-2026` |
+
+Register a new account at `/register`; promote it with
+`npm run db:admin -- someone@example.com`. The script only changes `role` —
+passwords are hashed by Better Auth and never touched by our code.
 
 ## Getting started
 
@@ -42,6 +55,7 @@ npm run dev                 # http://localhost:3000
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run db:migrate` | Create + apply a migration |
 | `npm run db:seed` | Reset and re-seed development data |
+| `npm run db:admin` | List users; add an email to promote it to ADMIN |
 | `npm run db:studio` | Prisma Studio (browse the database) |
 | `npm run db:generate` | Regenerate the Prisma client |
 
@@ -56,11 +70,15 @@ src/
   app/
     layout.tsx       fonts, metadata, global shell
     page.tsx         landing page (reads the DB)
+    login/ register/ email + password auth pages
     globals.css      design tokens
   components/        ui · exhibit · three · qr · forms · studio
   hooks/             camera, panorama, tour progress
   lib/
     db.ts            Prisma client (libSQL adapter)
+    auth.ts          Better Auth server config
+    auth-client.ts   Better Auth browser client
+    session.ts       getViewer() / isAdmin() for server code
     env.ts           server env validation
   generated/prisma/  generated client (git-ignored)
 ```
@@ -95,8 +113,8 @@ those back to enums and arrays.
 ## Roadmap
 
 - **Week 0** — repo, schema, seed, design tokens ✅
-- **Week 1** — gallery, exhibit page, 3D viewer, QR generation, SEO/ISR
-- **Week 2** — API, auth, `/scan`, passport, reviews
+- **Week 1** — gallery, exhibit page, 3D viewer, QR generation, SEO/ISR ✅
+- **Week 2** — auth ✅, `/scan`, passport, reviews
 - **Week 3** — AR mode, 360° VR viewer
 - **Week 4** — tours, admin studio, moderation, analytics
 - **Week 5** — accessibility, tests, deploy, demo

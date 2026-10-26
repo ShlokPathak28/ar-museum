@@ -1,34 +1,63 @@
-import { PrismaClient } from "@/generated/prisma/client";
-import { PrismaLibSql } from "@prisma/adapter-libsql";
-import { betterAuth } from "better-auth";
 import { prismaAdapter } from "@better-auth/prisma-adapter";
-import { jwt } from "better-auth/plugins";
+import { betterAuth } from "better-auth";
+
 import { nextCookies } from "@/lib/better-auth-next-js.mjs";
+import { prisma } from "@/lib/db";
 import { env } from "@/lib/env";
 
-const prisma = new PrismaClient({
-  adapter: new PrismaLibSql({ url: env.DATABASE_URL }),
-});
-
+/**
+ * Server-side auth instance. Uses the app's single Prisma client (libSQL
+ * adapter) so sessions and exhibit data share one connection pool.
+ *
+ * The session cookie is set through `nextCookies()`, which is why the plugin
+ * has to be last in the list.
+ */
 export const auth = betterAuth({
-  databaseAdapter: prismaAdapter(prisma, { provider: "sqlite" }),
-  plugins: [jwt(), nextCookies()],
-  // Week 2 asks for verbose logging so the team can see session/user ops in
-  // dev. Better Auth has no "silent" level, so the logger is only configured
-  // when there is a secret (i.e. a real auth environment).
-  ...(env.BETTER_AUTH_SECRET ? { logger: { level: "info" as const } } : {}),
-  user: {
-    // Match the app convention: the public-facing name lives on `name`.
-    fields: { name: "name" },
+  // The option is `database`, not `databaseAdapter`. A wrong key is silently
+  // ignored and Better Auth falls back to an in-memory store, so sign-up
+  // appears to work and nothing is ever written to SQLite.
+  database: prismaAdapter(prisma, { provider: "sqlite" }),
+  // `nextCookies()` must stay last: it forwards Set-Cookie from Better Auth to
+  // Next's cookie store.
+  plugins: [nextCookies()],
+  emailAndPassword: {
+    enabled: true,
+    minPasswordLength: 8,
+    // Signing up also signs you in; the visitor lands back on the site.
+    autoSignIn: true,
   },
+  // Verbose session logging in dev only; there is no "silent" level, so the
+  // logger is omitted entirely when no secret is configured.
+  ...(env.BETTER_AUTH_SECRET ? { logger: { level: "info" as const } } : {}),
   secret: env.BETTER_AUTH_SECRET ?? undefined,
+  // The dev server answers on localhost and on whichever LAN address the phone
+  // used; both must be accepted or sign-in fails the CSRF origin check. The LAN
+  // hosts come from the same list next.config.ts allows.
+  trustedOrigins: [
+    env.NEXT_PUBLIC_SITE_URL,
+    ...(env.DEV_ALLOWED_ORIGINS ?? "")
+      .split(",")
+      .map((host) => host.trim())
+      .filter(Boolean)
+      .flatMap((host) => [`http://${host}:3000`, `https://${host}:3000`]),
+    "http://localhost:3000",
+    "https://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://127.0.0.1:3000",
+  ],
+  user: {
+    // The app's public field for a display name is already `name`.
+    fields: { name: "name" },
+    additionalFields: {
+      // Existing column on User. `input: false` means a visitor cannot promote
+      // themselves by posting `role` to the sign-up endpoint.
+      role: { type: "string", required: false, defaultValue: "VISITOR", input: false },
+    },
+  },
+  session: {
+    // A museum visit lasts an afternoon; a week keeps a demo account usable.
+    expiresIn: 60 * 60 * 24 * 7,
+    updateAge: 60 * 60 * 24,
+  },
   trustInternalToken: true,
 });
-
-// Wire the Next.js cookie integration. This must be attached after creation so
-// the module can lazily load `next/headers` only during real requests.
-// Re-export a stable Prisma client for server code that does not need auth
-// (exhibit lists, QR handlers, and so on). It shares the same adapter URL but
-// is intentionally a separate instance from the auth DB so auth and app code
-// never accidentally share transaction state.
-export const appPrisma = prisma;
