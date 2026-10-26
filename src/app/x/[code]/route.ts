@@ -3,11 +3,11 @@ import { randomUUID } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { prisma } from "@/lib/db";
+import { DEVICE_COOKIE } from "@/lib/device";
 import { resolveOrigin } from "@/lib/origin";
+import { getViewer } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
-
-const DEVICE_COOKIE = "dharohar_device";
 
 /**
  * The QR entry point. A printed card encodes `/x/TH01`; this handler resolves the
@@ -44,6 +44,21 @@ export async function GET(
   } catch (error) {
     // Analytics must never stand between a visitor and the exhibit.
     console.error("Could not record scan", error);
+  }
+
+  // A stamp is the visitor-facing twin of a scan: one per object per device,
+  // claimed by an account on the next passport visit.
+  try {
+    const viewer = await getViewer();
+    const userId = viewer?.user.id ?? null;
+
+    await prisma.stamp.upsert({
+      where: { deviceId_exhibitId: { deviceId, exhibitId: exhibit.id } },
+      create: { deviceId, exhibitId: exhibit.id, userId },
+      update: userId ? { userId } : {},
+    });
+  } catch (error) {
+    console.error("Could not record stamp", error);
   }
 
   const response = NextResponse.redirect(

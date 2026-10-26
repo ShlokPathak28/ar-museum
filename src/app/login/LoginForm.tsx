@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { authClient } from "@/lib/auth-client";
+import { withNext } from "@/lib/next-path";
 
-export default function LoginForm() {
+export default function LoginForm({ next }: { next: string }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -26,7 +27,7 @@ export default function LoginForm() {
       return;
     }
 
-    router.replace("/");
+    router.replace(next);
     router.refresh();
   }
 
@@ -86,7 +87,7 @@ export default function LoginForm() {
 
       <p className="text-sm text-ink-soft">
         No account yet?{" "}
-        <Link href="/register" className="font-medium text-ochre hover:underline">
+        <Link href={withNext("/register", next)} className="font-medium text-ochre hover:underline">
           Create one
         </Link>
       </p>

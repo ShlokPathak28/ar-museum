@@ -279,7 +279,11 @@ export default function ScanPanel({
               placeholder="BH02"
               autoComplete="off"
               autoCapitalize="characters"
+              enterKeyHint="go"
               spellCheck={false}
+              required
+              pattern="[A-Za-z0-9]{4,12}"
+              title="Four to twelve letters or digits, e.g. BH02"
               maxLength={12}
               aria-describedby={notice?.source === "manual" ? "code-error" : undefined}
               className="w-full rounded-lg border border-ink/15 bg-paper px-3 py-2 font-mono text-sm uppercase tracking-widest outline-none focus-visible:border-ochre"

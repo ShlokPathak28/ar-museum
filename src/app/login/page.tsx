@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { safeNextPath } from "@/lib/next-path";
 import { getViewer } from "@/lib/session";
 
 import LoginForm from "./LoginForm";
@@ -12,9 +13,13 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function LoginPage() {
+type Props = { searchParams: Promise<{ next?: string }> };
+
+export default async function LoginPage({ searchParams }: Props) {
+  const next = safeNextPath((await searchParams).next);
+
   // Someone already signed in has no use for this page.
-  if (await getViewer()) redirect("/");
+  if (await getViewer()) redirect(next);
 
   return (
     <main className="mx-auto w-full max-w-md px-5 py-16 sm:px-8">
@@ -32,7 +37,7 @@ export default async function LoginPage() {
       </p>
 
       <div className="mt-8 rounded-xl border border-ink/10 bg-paper p-6">
-        <LoginForm />
+        <LoginForm next={next} />
       </div>
     </main>
   );

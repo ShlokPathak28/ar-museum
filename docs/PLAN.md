@@ -479,7 +479,20 @@ what changed from the plan, and what the next week inherits.
 - `/scan` added to `sitemap.xml`; the home header and the QR card both link to it.
 - Verified: `/scan` 200 with all five published codes (KT05 is `DRAFT` and correctly absent), `/x/BH02` 307 to the exhibit, home links present. **Not verified:** a real camera scan — that needs the phone.
 
-**Week 2 — still to come:** `/passport`, reviews (RHF + Zod, `useOptimistic`), `/api/v1/*`, middleware guards for `/studio`.
+**Passport + reviews slice (26 Oct)** — closed
+
+- **Stamps:** `/x/[code]` now writes a `Stamp` beside the `Scan` (upsert on `[deviceId, exhibitId]`, so re-scanning does not duplicate). A guest's stamps live under the `dharohar_device` cookie; `claimDeviceStamps()` moves the unowned rows to the account on the first `/passport` visit. Both writes are wrapped, so a stamp failure can never block the redirect to the exhibit.
+- **`/passport`:** `force-dynamic` + `noindex`; redirects to `/login?next=/passport` when signed out. Shows a progress ring, four badges, every published object as a stamp card (collected/locked, first-seen date) and the visitor's reviews.
+- **Guard:** `src/proxy.ts` (Next 16's renamed middleware) redirects `/passport` and `/studio` to `/login?next=…` when the session cookie is absent. UX only — the page re-checks `getViewer()` and every Server Action checks again.
+- **`?next=`:** `/login` and `/register` accept a `next` parameter, sanitised by `safeNextPath()` (same-origin paths only; `//evil.example` falls back to `/`), so the sign-in detour returns the visitor to the page they wanted.
+- **Reviews:** `ReviewSection` on the exhibit page. The visible list + average are rendered by the ISR page (aggregate over all reviews, list capped at 12); the form is a client island because the page is static. `react-hook-form` + the shared Zod schema validate in the browser and `saveReview()` re-validates on the server — Server Actions are public endpoints.
+- **One review per visitor per exhibit:** `saveReview()` upserts on `[userId, exhibitId]`, so posting again edits. `useOptimistic` inserts/updates/deletes instantly, and `revalidatePath()` busts the ISR cache so everyone else sees the change immediately.
+- **`/api/v1/reviews/mine`:** the static page cannot know who is reading it, so the form asks this endpoint which review is already theirs (401 for guests) and prefills.
+- **`/scan` form hardening:** the short-code input now has `required` + `pattern="[A-Za-z0-9]{4,12}"`, so a page that has not hydrated cannot submit an empty `?code=` GET (the pattern seen in the repeated-request log).
+- **Verified end-to-end** with a signed-in cookie jar: anonymous `/passport` 307 → `/login?next=%2Fpassport`; a guest scan sets the device cookie and the stamp is claimed on the first passport load; a review posted through the action appears on the exhibit page immediately (revalidatePath), then on `/passport`; editing keeps one row; a 7-character body is rejected; delete removes it from both pages.
+- **Not verified:** the review form in a real browser — no desktop browser is installed on this machine, so the Server Action was exercised over HTTP instead.
+
+**Week 2 — remaining:** the rest of `/api/v1/*` (exhibits, stamps, moderation), admin review moderation UI, `/studio` exhibit CRUD.
 
 ---
 

@@ -8,6 +8,8 @@ import { prisma } from "@/lib/db";
 import { absoluteUrl, siteName, siteUrl } from "@/lib/site";
 import type { HotspotData } from "@/types/exhibit";
 
+import ReviewSection from "./ReviewSection";
+
 export const revalidate = 60;
 
 type Params = { params: Promise<{ slug: string }> };
@@ -85,14 +87,35 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 export default async function ExhibitPage({ params }: Params) {
   const { slug } = await params;
 
-  const exhibit = await prisma.exhibit.findUnique({
-    where: { slug },
-    include: {
-      room: true,
-      hotspots: { orderBy: { order: "asc" } },
-      gallery: { orderBy: { order: "asc" } },
-    },
-  });
+  const [exhibit, reviewStats] = await Promise.all([
+    prisma.exhibit.findUnique({
+      where: { slug },
+      include: {
+        room: true,
+        hotspots: { orderBy: { order: "asc" } },
+        gallery: { orderBy: { order: "asc" } },
+        reviews: {
+          where: { status: "VISIBLE" },
+          orderBy: { createdAt: "desc" },
+          take: 12,
+          select: {
+            id: true,
+            rating: true,
+            body: true,
+            createdAt: true,
+            user: { select: { name: true } },
+          },
+        },
+      },
+    }),
+    // A separate aggregate so the average covers every review, not just the
+    // twelve rendered below.
+    prisma.review.aggregate({
+      where: { exhibit: { slug }, status: "VISIBLE" },
+      _avg: { rating: true },
+      _count: { _all: true },
+    }),
+  ]);
 
   if (!exhibit || exhibit.status !== "PUBLISHED") notFound();
 
@@ -118,6 +141,14 @@ export default async function ExhibitPage({ params }: Params) {
   const caption = modelMedia?.credit
     ? `${modelMedia.credit}. Placeholder asset until this object is scanned.`
     : "Placeholder model, pending a scan of the object.";
+
+  const reviews = exhibit.reviews.map((review) => ({
+    id: review.id,
+    rating: review.rating,
+    body: review.body,
+    createdAt: review.createdAt.toISOString(),
+    authorName: review.user.name,
+  }));
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -261,6 +292,14 @@ export default async function ExhibitPage({ params }: Params) {
           </div>
         </aside>
       </div>
+
+      <ReviewSection
+        exhibitId={exhibit.id}
+        slug={exhibit.slug}
+        reviews={reviews}
+        average={reviewStats._avg.rating}
+        count={reviewStats._count._all}
+      />
     </main>
   );
 }

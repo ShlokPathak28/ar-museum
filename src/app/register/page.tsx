@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { safeNextPath } from "@/lib/next-path";
 import { getViewer } from "@/lib/session";
 
 import RegisterForm from "./RegisterForm";
@@ -12,8 +13,12 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function RegisterPage() {
-  if (await getViewer()) redirect("/");
+type Props = { searchParams: Promise<{ next?: string }> };
+
+export default async function RegisterPage({ searchParams }: Props) {
+  const next = safeNextPath((await searchParams).next);
+
+  if (await getViewer()) redirect(next);
 
   return (
     <main className="mx-auto w-full max-w-md px-5 py-16 sm:px-8">
@@ -31,7 +36,7 @@ export default async function RegisterPage() {
       </p>
 
       <div className="mt-8 rounded-xl border border-ink/10 bg-paper p-6">
-        <RegisterForm />
+        <RegisterForm next={next} />
       </div>
     </main>
   );

@@ -5,10 +5,11 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { authClient } from "@/lib/auth-client";
+import { withNext } from "@/lib/next-path";
 
 const MIN_PASSWORD = 8;
 
-export default function RegisterForm() {
+export default function RegisterForm({ next }: { next: string }) {
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -34,7 +35,7 @@ export default function RegisterForm() {
       return;
     }
 
-    router.replace("/");
+    router.replace(next);
     router.refresh();
   }
 
@@ -115,7 +116,7 @@ export default function RegisterForm() {
 
       <p className="text-sm text-ink-soft">
         Already registered?{" "}
-        <Link href="/login" className="font-medium text-ochre hover:underline">
+        <Link href={withNext("/login", next)} className="font-medium text-ochre hover:underline">
           Sign in
         </Link>
       </p>

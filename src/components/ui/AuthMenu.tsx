@@ -33,6 +33,12 @@ export default function AuthMenu() {
 
   return (
     <div className="flex items-center gap-3">
+      <Link
+        href="/passport"
+        className="rounded-full border border-ink/15 px-3 py-1 font-mono text-[11px] uppercase tracking-widest text-ink-soft transition-colors hover:border-ink/40 hover:text-ink"
+      >
+        Passport
+      </Link>
       <span className="hidden max-w-[10rem] truncate text-sm text-ink-soft sm:inline">
         {data.user.name}
       </span>
