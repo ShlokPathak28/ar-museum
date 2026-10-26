@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import QRCode from "qrcode";
 
 import { prisma } from "@/lib/db";
+import { resolveOrigin } from "@/lib/origin";
 
 // The payload embeds the host the request arrived on, so it cannot be cached at
 // build time.
@@ -29,9 +30,7 @@ export async function GET(
     return NextResponse.json({ error: "Unknown exhibit code" }, { status: 404 });
   }
 
-  const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
-  const protocol = request.headers.get("x-forwarded-proto") ?? "http";
-  const origin = host ? `${protocol}://${host}` : request.nextUrl.origin;
+  const origin = resolveOrigin(request.headers);
 
   const png = await QRCode.toBuffer(`${origin}/x/${exhibit.code}`, {
     type: "png",

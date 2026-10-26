@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import QRCode from "qrcode";
 
 import { prisma } from "@/lib/db";
+import { resolveOrigin } from "@/lib/origin";
 
 import { PrintButton } from "./PrintButton";
 
@@ -26,10 +27,7 @@ export default async function MarkersPage() {
 
   // Encode whatever address the page was reached on: print from the laptop and
   // the card points at the laptop's LAN address, which is what the phone needs.
-  const headerList = await headers();
-  const host = headerList.get("x-forwarded-host") ?? headerList.get("host") ?? "localhost:3000";
-  const protocol = headerList.get("x-forwarded-proto") ?? "http";
-  const baseUrl = `${protocol}://${host}`;
+  const baseUrl = resolveOrigin(await headers());
 
   const cards = await Promise.all(
     exhibits.map(async (exhibit) => ({

@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { prisma } from "@/lib/db";
+import { resolveOrigin } from "@/lib/origin";
 
 export const dynamic = "force-dynamic";
 
@@ -23,9 +24,7 @@ export async function GET(
 
   // `request.url` is normalised to the dev server's own origin, which would send
   // a phone back to localhost. The Host header is what the visitor actually used.
-  const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
-  const protocol = request.headers.get("x-forwarded-proto") ?? "http";
-  const origin = host ? `${protocol}://${host}` : request.nextUrl.origin;
+  const origin = resolveOrigin(request.headers);
 
   const exhibit = await prisma.exhibit.findUnique({
     where: { code: code.toUpperCase() },
