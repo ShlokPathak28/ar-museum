@@ -494,6 +494,95 @@ what changed from the plan, and what the next week inherits.
 
 **Week 2 — remaining:** the rest of `/api/v1/*` (exhibits, stamps, moderation), admin review moderation UI, `/studio` exhibit CRUD.
 
+### Week 3–4 — planned
+
+#### Stretch — themed room pages
+
+**Idea.** Give each room a page with its own visual identity — surface, accent and a small motif drawn from the objects inside it — instead of every room wearing the same sand-and-ochre skin. The room page becomes the missing middle of the visit: a QR card opens one object, but nothing currently explains why these six objects sit together. A themed room page is that threshold — what the room is about, what is in it, a 360° preview once Week 3 lands, and a way into each exhibit. The theme stays on the room page; the exhibit page keeps the museum's global frame.
+
+**Current state.**
+
+- `Room` has `id`, `slug`, `name`, `floor`, `panoramaUrl`, `createdAt`, `updatedAt`. Both seeded rooms (`material-worlds` / "Material Worlds", `everyday-objects` / "Everyday Objects") have `panoramaUrl: null`.
+- There is **no `/rooms` route yet**. `app/rooms/[slug]/page.tsx` is in the §4 route map but unbuilt. Room context appears only as a text label on an exhibit page and as `contentLocation` in its JSON-LD.
+- Colours are fixed once in `globals.css` (`--color-ink`, `--color-ochre`, `--color-sand`, `--color-paper`…). Nothing scopes a palette to a subtree.
+- Week 3's VR viewer will need a home; the room page is the natural one.
+
+**Proposed changes**
+
+| Area | Change | Effort | Week |
+|---|---|---|---|
+| Schema | Six optional fields on `Room` (below) + one migration | S | 3 |
+| Seed | `themeKey`, `intro` and a motif for both rooms | S | 3 |
+| Theme registry | `src/lib/themes.ts` — a closed, contrast-checked palette map | S | 3 |
+| `/rooms` | ISR index: room cards with name, floor, object count, accent | S | 3 |
+| `/rooms/[slug]` | ISR page: themed header, intro, panorama slot, exhibit grid, scan CTA | M | 3 |
+| Exhibit page | Room label becomes a link; prev/next within the room | S | 4 |
+| OG | `opengraph-image.tsx` per room using the accent | S | 4 |
+| Studio | Theme picker (registry only) + intro textarea | S | 4 |
+| SEO | Add `/rooms` and every room to `sitemap.ts` | XS | 3 |
+| Docs | Record the palette rules and any motif/audio credits | XS | 4 |
+
+**Theme fields on `Room`** (existing fields omitted)
+
+```prisma
+model Room {
+  // … existing: id, slug, name, floor, panoramaUrl, exhibits, timestamps
+
+  themeKey    String  @default("sand") // key into the registry, not free-form CSS
+  accent      String? // #rrggbb override, validated in Zod
+  surface     String? // #rrggbb override, validated in Zod
+  motif       String? // pattern key: "scroll" | "kalamkari" | "trade" | null
+  intro       String? // one or two sentences for the room page
+  ambienceUrl String? // optional loop; muted by default, never autoplays
+}
+```
+
+All six are nullable or defaulted, so the seed and the existing rows keep working and a room without a theme renders the current palette. Migration: `npx prisma migrate dev --name room_themes`, then `npx prisma generate` (migrate does not regenerate the client — the Week 2 lesson).
+
+**Example themes**
+
+| `themeKey` | Room | Surface | Accent | Motif | Why it fits |
+|---|---|---|---|---|---|
+| `pigment` | Material Worlds | `#f4e8d7` cloth-warm | `#8c2f1d` brick | `scroll` painted border | Pattachitra pigment, fired terracotta and bidri silver: colour laid on earth |
+| `brass` | Everyday Objects | `#f0eadf` bone-paper | `#7a5a2e` brass | `kalamkari` fine vine | A brass measure, a bone-inlaid box and a textile fragment: quieter, tool-like |
+| `indigo` | *(a future room)* | `#e8ebef` | `#2f4a5c` indigo | `trade` chevron | Proves the registry extends without another migration |
+
+`--color-ink` stays the body text colour on every surface, and each surface/accent pair is checked at ≥ 4.5:1 before it enters the registry. Only the accent and the page surface move; the rest of the tokens are inherited.
+
+**Implementation sketch**
+
+1. **Schema + seed.** Add the fields above; `themeKey: "pigment"` for Material Worlds, `"brass"` for Everyday Objects, plus a two-sentence `intro` each.
+2. **`src/lib/themes.ts`.** `ROOM_THEMES = { sand, pigment, brass, indigo }`, each `{ surface, accent, motif }`, exported `as const` with a `RoomThemeKey` union and a Zod enum for admin input. Hex overrides are validated with `/^#[0-9a-f]{6}$/i`; an unknown key falls back to `sand`.
+3. **`src/components/room/RoomTheme.tsx`.** A server component that renders `<div style={{ "--room-surface": …, "--room-accent": … }}>` around its children. Scoped to the subtree, never `:root`, so the site header and footer do not change colour.
+4. **`/rooms/page.tsx`.** `revalidate = 60`; one query for rooms with `_count.exhibits` (published only); a card per room using its accent.
+5. **`/rooms/[slug]/page.tsx`.** `generateStaticParams` + `revalidate = 60` + `generateMetadata`; `notFound()` for unknown or empty rooms. Layout: themed header band (name, floor, intro), panorama slot, exhibit grid reusing `ExhibitCard`, a "Scan a card" CTA. The panorama slot renders a static poster until the Week 3 viewer is ready, then swaps without changing the route.
+6. **Exhibit page.** Turn the room label into `<Link href={/rooms/${room.slug}}>`; add previous/next exhibit links scoped to the same room.
+7. **OG + sitemap.** A room `opengraph-image.tsx` using the accent; add `/rooms` and each room to `sitemap.ts` (robots already excludes `/studio`).
+8. **Studio.** A `<select>` populated from the registry plus an intro textarea; the Server Action re-validates with Zod. No raw colour picker in v1 — that is how a museum site ends up with an unreadable room.
+
+**Trade-offs**
+
+| Decision | Cheaper option | Richer option | Verdict |
+|---|---|---|---|
+| Where the theme applies | Room page only | The whole visit (room → exhibit → passport) | **Room page + a linked room chip.** Retheming exhibit pages breaks the "one museum" frame and makes OG/ISR output depend on where the visitor came from. |
+| Colour source | Closed registry | Free-form hex per room | **Registry, with accent/surface overrides.** Keeps contrast guarantees and stops the studio becoming a CSS editor. |
+| How it is applied | CSS custom properties on a wrapper | A Tailwind class per theme | **CSS variables.** No new utilities, no purge surprises, one wrapper to audit. |
+| Hero | Static poster | Live 360° panorama | **Poster first**, then the Week 3 viewer in the same slot. A 1.5 MB panorama competes with the 3D model on a phone. |
+| Data | New `Room` fields | Derive the theme from `slug` in code | **New fields.** Derivation hard-codes room names in two places and the admin cannot change anything. |
+| Type | Reuse Fraunces / Instrument Sans / Plex Mono | A display face per room | **Reuse.** A second family costs 40–80 kB and breaks the typographic system the site already committed to. |
+| Effort | One evening | Three days | **MVP only** — see below. |
+
+**Scope decision**
+
+- **Priority: stretch, not core.** The demo spine is QR → 3D → AR → VR, then `/studio`. Themed rooms never displace those.
+- **Gate:** start only when the Week 3 VR walkthrough and the Week 4 studio CRUD are demoable **and recorded**. If either slips, this slips.
+- **MVP (must ship):** schema + registry + `/rooms` + `/rooms/[slug]` with intro, themed header, exhibit grid and room chip; both seeded rooms themed. No panorama required.
+- **Stretch within the stretch:** per-room OG image, motif texture, prev/next within a room.
+- **Explicitly cut:** whole-visit retheming, per-room fonts, ambience audio, admin colour pickers, animated theme transitions, a third room.
+- **Timebox:** one 4–6 hour sitting. If it is not demoable by then, revert the migration and ship without it — the log records "considered, deferred", not half-built.
+- **Acceptance:** `/rooms` and both room pages return 200 and appear in the sitemap; body text ≥ 4.5:1 on every themed surface; no layout shift; no new client JS on the room page; exhibit pages unchanged in size and speed.
+- **Why it earns its place:** the demo currently jumps from a QR card straight to an object. The room page is the missing middle — it explains the grouping, gives the VR work a front door, and is the cheapest way to make two rooms feel like two rooms.
+
 ---
 
 ## 13. Demo kit (build week 1, not week 6)
