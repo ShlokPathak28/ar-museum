@@ -445,6 +445,14 @@ what changed from the plan, and what the next week inherits.
 - Seed gained hotspots for all three modelled exhibits, positioned against the GLB bounds (metres, model origin at the floor of the bounding box) — the earlier Bidri hotspot sat off the surface.
 - Not verified this week: real-device rendering of the new viewers, and a browser pass on the filter interaction. Both need the phone/HTTPS loop; everything else is covered by `next build` + HTTP checks.
 
+**Week 1 follow-up (26 Oct)**
+
+- **QR origin bug:** `/x/[code]`, `/api/qr/[code]` and `/markers` each resolved the scheme as `x-forwarded-proto ?? "http"`. With the HTTPS dev loop that meant a scanned card sent the phone to `http://…`, which the HTTPS server refuses — the same failure class as the earlier `localhost` redirect. Resolution now lives in `src/lib/origin.ts` and falls back to the scheme of `NEXT_PUBLIC_SITE_URL`, so the card, the redirect and the canonical URL always agree.
+- **Certificate drift:** the Wi-Fi address moved from `172.19.227.217` to `10.118.43.217`, which silently invalidated the mkcert certificate. `npm run dev:https` now runs `scripts/https-cert.mjs` first, which finds the interface that owns the default route and regenerates the certificate for it.
+- **Verified over HTTPS** against `https://10.118.43.217:3000`: `/`, `/exhibits`, `/exhibits/[slug]`, `/markers` (cards encode the HTTPS LAN origin), `/x/[code]` (307 to the exhibit + `dharohar_device` cookie), `/api/qr/[code]` (200 PNG / 404 unknown), `/sitemap.xml` (all entries HTTPS), `/robots.txt`, both OG images, `/spike/ar`, `/spike/panorama`.
+- **Open — model swap:** the three modelled exhibits still point at CC0 stand-ins (`baluster-vase`, `stoneware-jug`, `patent-model-box`). The intended `bidri-hookah-base` / `brass-measuring-vessel` / `inlaid-writing-box` GLBs are not in the repo, and Smithsonian returns 403 from this network, so the swap waits on the files landing in `public/models/`.
+- **Auth merge:** the `feat/auth-nextjs` branch is now on `main` as scaffolding. Dependencies are installed and the module typechecks against better-auth 1.7 (`prismaAdapter(prisma, { provider: "sqlite" })`, `nextCookies()`), but the Prisma schema has no `session` / `account` / `verification` tables yet, so `/api/auth/*` is not usable until week 2.
+
 ### Week 2 — next
 
 API routes (`/api/v1/*`), Better Auth + roles, middleware, `/scan`, `/passport` (Zustand + stamp sync), reviews (RHF + Zod, `useOptimistic`).

@@ -11,18 +11,12 @@ const prisma = new PrismaClient({
 });
 
 export const auth = betterAuth({
-  databaseAdapter: prismaAdapter(prisma, {
-    // better-auth expects the timestamp column as `updated_at`; our Prisma
-    // schema names it `updatedAt` and the generated client still exposes that
-    // camelCase field, so map the expected column name to it.
-    map: { updated_at: "updatedAt" },
-  }),
-  plugins: [jwt(), nextCookies],
+  databaseAdapter: prismaAdapter(prisma, { provider: "sqlite" }),
+  plugins: [jwt(), nextCookies()],
   // Week 2 asks for verbose logging so the team can see session/user ops in
-  // dev. Keep it silent in production, or when there is no auth secret yet.
-  logger: {
-    level: env.BETTER_AUTH_SECRET ? "info" : "silent",
-  },
+  // dev. Better Auth has no "silent" level, so the logger is only configured
+  // when there is a secret (i.e. a real auth environment).
+  ...(env.BETTER_AUTH_SECRET ? { logger: { level: "info" as const } } : {}),
   user: {
     // Match the app convention: the public-facing name lives on `name`.
     fields: { name: "name" },

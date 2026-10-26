@@ -27,8 +27,7 @@ Find the LAN address (ignore `192.168.56.1`, that is a virtual adapter):
 Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.IPAddress -notlike "127.*" }
 ```
 
-Generate a certificate that covers the LAN address and localhost. Re-run this
-whenever the Wi-Fi address changes:
+Generate a certificate that covers the LAN address and localhost:
 
 ```powershell
 mkcert -cert-file certs/dev-cert.pem -key-file certs/dev-key.pem <lan-ip> localhost 127.0.0.1 ::1
@@ -36,11 +35,19 @@ mkcert -cert-file certs/dev-cert.pem -key-file certs/dev-key.pem <lan-ip> localh
 
 `certs/` is gitignored — the key never leaves the machine.
 
+You normally do **not** need to run this by hand: `npm run dev:https` runs
+`scripts/https-cert.mjs` first, which finds the address that owns the default
+route and regenerates the certificate for it. That matters because the Wi-Fi
+address changes between networks, and a stale certificate makes the phone show
+"Your connection is not private" even when the CA is installed.
+
 ## Run
 
 ```powershell
 npm run dev:https
 ```
+
+The script prints the address to open, e.g. `https://10.118.43.217:3000`.
 
 `.env` must match the address you are testing from:
 

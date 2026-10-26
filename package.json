@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "dev:https": "next dev -H 0.0.0.0 --experimental-https --experimental-https-key ./certs/dev-key.pem --experimental-https-cert ./certs/dev-cert.pem",
+    "dev:https": "node scripts/https-cert.mjs && next dev -H 0.0.0.0 --experimental-https --experimental-https-key ./certs/dev-key.pem --experimental-https-cert ./certs/dev-cert.pem",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -17,10 +17,12 @@
     "db:studio": "node scripts/db-studio.mjs"
   },
   "dependencies": {
+    "@better-auth/prisma-adapter": "^1.7.13",
     "@google/model-viewer": "^4.4.0",
     "@libsql/client": "^0.18.0",
     "@prisma/adapter-libsql": "^7.10.1",
     "@prisma/client": "^7.10.1",
+    "better-auth": "^1.7.13",
     "next": "16.4.2",
     "qrcode": "^1.5.4",
     "react": "19.3.0",
