@@ -17,7 +17,7 @@ export default async function NewExhibitPage() {
   });
 
   return (
-    <main className="mx-auto w-full max-w-4xl px-5 pb-24 pt-10 sm:px-8">
+    <main id="main" tabIndex={-1} className="mx-auto w-full max-w-4xl px-5 pb-24 pt-10 sm:px-8">
       <div className="border-b border-ink/15 pb-5">
         <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-oxblood">
           New object

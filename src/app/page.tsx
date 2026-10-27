@@ -55,7 +55,7 @@ export default async function HomePage() {
       <SiteHeader />
       <GalleryDoors />
 
-      <main>
+      <main id="main" tabIndex={-1}>
         {/* The hall. One object under one light, the rest of the room in shadow. */}
         <section className="grain relative isolate overflow-hidden bg-vault text-chalk">
           <div
@@ -106,7 +106,7 @@ export default async function HomePage() {
 
               <dl className="mt-14 grid max-w-md grid-cols-3 gap-6 border-t border-chalk/15 pt-6">
                 <div>
-                  <dt className="font-mono text-[9px] uppercase tracking-[0.22em] text-chalk/40">
+                  <dt className="font-mono text-[9px] uppercase tracking-[0.22em] text-chalk/50">
                     Objects
                   </dt>
                   <dd className="mt-2 font-serif text-3xl leading-none">
@@ -114,13 +114,13 @@ export default async function HomePage() {
                   </dd>
                 </div>
                 <div>
-                  <dt className="font-mono text-[9px] uppercase tracking-[0.22em] text-chalk/40">
+                  <dt className="font-mono text-[9px] uppercase tracking-[0.22em] text-chalk/50">
                     Rooms
                   </dt>
                   <dd className="mt-2 font-serif text-3xl leading-none">{pad(rooms.length)}</dd>
                 </div>
                 <div>
-                  <dt className="font-mono text-[9px] uppercase tracking-[0.22em] text-chalk/40">
+                  <dt className="font-mono text-[9px] uppercase tracking-[0.22em] text-chalk/50">
                     Models
                   </dt>
                   <dd className="mt-2 font-serif text-3xl leading-none">{pad(modelCount)}</dd>
@@ -301,7 +301,7 @@ export default async function HomePage() {
                             {room.name}
                           </h3>
                         </div>
-                        <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-chalk/45">
+                        <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-chalk/50">
                           {room._count.exhibits} objects
                         </span>
                       </div>

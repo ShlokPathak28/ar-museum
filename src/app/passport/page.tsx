@@ -48,7 +48,7 @@ export default async function PassportPage() {
         }
       />
 
-      <main className="mx-auto w-full max-w-5xl px-5 pb-24 sm:px-8">
+      <main id="main" tabIndex={-1} className="mx-auto w-full max-w-5xl px-5 pb-24 sm:px-8">
         <div className="mt-10 grid gap-8 sm:grid-cols-[auto_1fr] sm:items-center">
           <div className="relative grid place-items-center">
             <svg viewBox="0 0 120 120" className="h-32 w-32 -rotate-90" aria-hidden="true">
@@ -107,7 +107,7 @@ export default async function PassportPage() {
                     </p>
                     <span
                       className={`font-mono text-[10px] uppercase tracking-widest ${
-                        badge.earned ? "text-oxblood" : "text-ink-soft/70"
+                        badge.earned ? "text-oxblood" : "text-ink-soft"
                       }`}
                     >
                       {badge.earned ? "Earned" : "Locked"}
@@ -165,7 +165,7 @@ export default async function PassportPage() {
                   <p className="mt-1 text-xs text-ink-soft">{exhibit.room}</p>
                   <p
                     className={`mt-3 font-mono text-[10px] uppercase tracking-widest ${
-                      collected ? "text-oxblood" : "text-ink-soft/70"
+                      collected ? "text-oxblood" : "text-ink-soft"
                     }`}
                   >
                     {collected ? "Collected" : "Not collected"}

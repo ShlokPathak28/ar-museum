@@ -54,7 +54,7 @@ export default async function MarkersPage() {
           aside={
             <div className="space-y-3">
               <PrintButton />
-              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-chalk/40">
+              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-chalk/50">
                 Links point at {baseUrl}
               </p>
             </div>
@@ -62,7 +62,7 @@ export default async function MarkersPage() {
         />
       </div>
 
-      <main className="markers-page mx-auto w-full max-w-6xl px-5 pb-24 sm:px-8">
+      <main id="main" tabIndex={-1} className="markers-page mx-auto w-full max-w-6xl px-5 pb-24 sm:px-8">
         <h1 className="hidden pb-4 font-serif text-2xl tracking-tight print:block">
           Marker cards
         </h1>

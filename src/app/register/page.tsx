@@ -31,7 +31,7 @@ export default async function RegisterPage({ searchParams }: Props) {
         lede="A visitor account keeps your stamps across devices and lets you review an exhibit once. Everything else stays open to guests."
       />
 
-      <main className="mx-auto w-full max-w-md px-5 py-12 sm:px-8">
+      <main id="main" tabIndex={-1} className="mx-auto w-full max-w-md px-5 py-12 sm:px-8">
         <div className="border border-ink/12 bg-paper p-6">
           <RegisterForm next={next} />
         </div>

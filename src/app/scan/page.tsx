@@ -50,7 +50,7 @@ export default async function ScanPage() {
         lede="The QR is the front door. Point the camera at a card and the exhibit opens by itself; if the camera is unavailable, the short code does the same job."
       />
 
-      <main className="mx-auto w-full max-w-4xl px-5 pb-24 sm:px-8">
+      <main id="main" tabIndex={-1} className="mx-auto w-full max-w-4xl px-5 pb-24 sm:px-8">
         <ScanPanel codes={exhibits} />
 
         <section aria-labelledby="how-heading" className="mt-16 border-t border-ink/10 pt-8">

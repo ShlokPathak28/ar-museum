@@ -33,7 +33,7 @@ export default async function RoomsPage() {
         lede="Each room has a 360° view you can steer by hand or by moving your phone. The markers on the panorama open the object they sit beside."
       />
 
-      <main className="mx-auto w-full max-w-5xl px-5 pb-24 sm:px-8">
+      <main id="main" tabIndex={-1} className="mx-auto w-full max-w-5xl px-5 pb-24 sm:px-8">
         <ul className="exhibit-grid mt-12 grid gap-8 sm:grid-cols-2">
           {rooms.map((room) => (
             <li key={room.id}>

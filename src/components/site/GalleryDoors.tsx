@@ -54,7 +54,7 @@ export default function GalleryDoors() {
       <div className="gallery-flood" />
 
       <div className="gallery-veil">
-        <p className="font-mono text-[9px] uppercase tracking-[0.34em] text-chalk/40 sm:text-[10px]">
+        <p className="font-mono text-[9px] uppercase tracking-[0.34em] text-chalk/50 sm:text-[10px]">
           Museum of Material Culture
         </p>
 
@@ -66,7 +66,7 @@ export default function GalleryDoors() {
             Dharohar
           </p>
           <span aria-hidden className="mt-7 h-px w-16 bg-brass-light/50" />
-          <p className="mt-6 max-w-[19rem] text-[12px] leading-relaxed text-chalk/45">
+          <p className="mt-6 max-w-[19rem] text-[12px] leading-relaxed text-chalk/50">
             A small museum of the things people made, and the rooms they made them in.
           </p>
         </div>
@@ -75,7 +75,7 @@ export default function GalleryDoors() {
           <span className="border border-brass-light/45 px-8 py-3 font-mono text-[10px] uppercase tracking-[0.3em] text-brass-light">
             Enter
           </span>
-          <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-chalk/30">
+          <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-chalk/50">
             Click anywhere · or press Enter
           </p>
         </div>

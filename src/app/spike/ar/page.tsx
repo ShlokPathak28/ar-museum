@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function ArSpikePage() {
   return (
-    <main className="mx-auto w-full max-w-6xl px-5 py-10 sm:px-8">
+    <main id="main" tabIndex={-1} className="mx-auto w-full max-w-6xl px-5 py-10 sm:px-8">
       <header className="flex flex-wrap items-baseline justify-between gap-4 border-b border-ink/10 pb-4">
         <h1 className="font-serif text-3xl">AR spike</h1>
         <div className="flex items-baseline gap-4">

@@ -26,6 +26,15 @@ export default async function StudioLayout({ children }: { children: ReactNode }
 
   return (
     <div className="min-h-screen bg-chalk text-ink">
+      {/* Same first stop as the public pages: the studio nav costs a keyboard
+          user four tabs before they reach the table they came for. */}
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-3 focus:z-50 focus:bg-paper focus:px-4 focus:py-2 focus:text-[13px] focus:font-medium focus:text-ink print:hidden"
+      >
+        Skip to content
+      </a>
+
       <header className="border-b border-chalk/10 bg-vault text-chalk">
         <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-5 py-3.5 sm:px-8">
           <div className="flex min-w-0 items-baseline gap-3">
@@ -33,7 +42,7 @@ export default async function StudioLayout({ children }: { children: ReactNode }
               Dharohar <span className="text-brass-light">Studio</span>
             </Link>
             <span aria-hidden className="hidden h-3 w-px bg-chalk/15 sm:block" />
-            <span className="hidden text-[11px] uppercase tracking-[0.14em] text-chalk/40 sm:block">
+            <span className="hidden text-[11px] uppercase tracking-[0.14em] text-chalk/50 sm:block">
               {viewer.user.name}
             </span>
           </div>
@@ -50,7 +59,7 @@ export default async function StudioLayout({ children }: { children: ReactNode }
             ))}
             <Link
               href="/"
-              className="text-[12px] text-chalk/45 transition-colors hover:text-chalk sm:text-[13px]"
+              className="text-[12px] text-chalk/50 transition-colors hover:text-chalk sm:text-[13px]"
             >
               View site ↗
             </Link>

@@ -546,6 +546,17 @@ what changed from the plan, and what the next week inherits.
 - **Verified in the in-app browser over HTTPS:** admin sign-in → create draft → appears in the drafts tab → publish → `/exhibits/studio-test-lamp` 200 → unpublish → 404 → delete → 404, counts back to 5 published / 1 draft; blank form submit shows the seven expected field messages; visitor posts a review (5/5), admin hides it (gone from the page, "No reviews yet"), restores it (back at 5.0 / 1 review), then deletes it; signed-out `/studio/exhibits` 307 → `/login?next=%2Fstudio%2Fexhibits`; signed-in visitor gets a 404 and no Studio link. Test exhibit and review removed afterwards — the DB is back to 6 exhibits / 0 reviews.
 - **Not verified:** the studio on a phone, and image/model upload (not built).
 
+### Week 5 — accessibility (27 Oct) — closed
+
+- **Method:** axe-core 4.10.2 injected into the in-app browser (unpkg, not a project dependency) with the `wcag2a/aa`, `wcag21a/aa` and `wcag22aa` tags, over 14 routes signed in and out: `/`, `/exhibits`, an exhibit, `/rooms`, a room, `/scan`, `/markers`, `/passport`, `/studio`, `/studio/exhibits`, `/studio/exhibits/new`, `/studio/reviews`, `/login`, `/register`. Automated checks were followed by the things axe cannot see: tab order, focus rings, heading order, landmarks and target size.
+- **Contrast floor:** all 16 violations were muted type. `chalk/{30,35,40,45}` (2.4–4.1:1 on vault) → `chalk/50`, which measures 4.82:1 on `vault` and 4.80:1 on the header's `#171511`; `ink-soft/70` (3.28:1 on chalk) → solid `ink-soft` (6.49:1). The rule and its measured numbers are now written at the top of `globals.css`, so the next page does not re-invent a faint label.
+- **Focus ring, two tones:** oxblood is 9.2:1 on chalk but only 1.6:1 on vault, so the single ring failed on the dark half of the site. Now `outline: 2px solid oxblood-soft` plus a `0 0 0 5px rgb(251 250 246 / 0.75)` halo — at least one of the two always clears the 3:1 non-text minimum.
+- **Skip link:** `SiteHeader` and the studio layout each open with "Skip to content"; every one of the 17 `<main>` elements gained `id="main" tabIndex={-1}`, so the link moves focus, not just the scroll position (verified: `#main` in the URL, `activeElement` is `<main>`, page scrolled to it).
+- **Deliberately unchanged:** most header and footer links render 18–20 px tall. WCAG 2.5.8 is met through its spacing and inline exceptions (the nav's `gap-3/6`, the footer's `gap-2`), so no padding was added — that would trade a real visual system for a number.
+- **Verified:** axe reports **0 violations on all 14 routes**, signed in as admin and signed out; `tsc`, `eslint --max-warnings=0` and `next build` clean.
+- **Turbopack cache, again:** for ten minutes `next dev` kept serving a `globals.css` from before the edits — the file on disk and the production build both had the new rules, the dev chunk did not, and touching the file did not help. Deleting `.next` fixed it, same as the `safeParse` incident in the studio entry. When dev CSS disagrees with the source, check the built chunk before the source.
+- **Not verified:** real Tab-key order and the visible skip link in the in-app browser (the webview never takes OS focus, so `:focus` cannot be exercised there) — this moves to the Playwright suite, which is the next Week 5 item; also untested are a screen-reader pass and 400% zoom / reflow.
+
 ### Week 3–4 — planned
 
 #### Stretch — themed room pages

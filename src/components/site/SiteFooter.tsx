@@ -12,7 +12,7 @@ export default function SiteFooter() {
         <div className="grid gap-10 border-b border-chalk/15 pb-10 sm:grid-cols-[1.4fr_1fr_1fr]">
           <div>
             <p className="font-serif text-2xl tracking-tight">Dharohar</p>
-            <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.22em] text-chalk/35">
+            <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.22em] text-chalk/50">
               Museum of Material Culture
             </p>
             <p className="mt-6 max-w-xs text-sm leading-relaxed text-chalk/50">
@@ -54,7 +54,7 @@ export default function SiteFooter() {
           </div>
         </div>
 
-        <div className="mt-6 flex flex-col gap-2 text-[11px] text-chalk/30 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-6 flex flex-col gap-2 text-[11px] text-chalk/50 sm:flex-row sm:items-center sm:justify-between">
           <p>Built for INT252 and INT257. A fictional museum; objects and panoramas are stand-ins.</p>
           <p className="font-mono uppercase tracking-[0.16em]">Next.js 16 · Prisma · SQLite · WebXR</p>
         </div>

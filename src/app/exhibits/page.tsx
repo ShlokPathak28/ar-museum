@@ -68,7 +68,7 @@ export default async function ExhibitsPage() {
         }
       />
 
-      <main className="mx-auto w-full max-w-6xl px-5 pb-24 sm:px-8">
+      <main id="main" tabIndex={-1} className="mx-auto w-full max-w-6xl px-5 pb-24 sm:px-8">
         <Suspense
           fallback={
             <>

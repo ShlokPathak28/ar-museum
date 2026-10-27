@@ -97,7 +97,7 @@ export default async function RoomPage({ params }: Props) {
         lede={room.intro ?? undefined}
       />
 
-      <main className="mx-auto w-full max-w-6xl px-5 pb-24 sm:px-8">
+      <main id="main" tabIndex={-1} className="mx-auto w-full max-w-6xl px-5 pb-24 sm:px-8">
         <div className="pt-12">
           {room.panoramaUrl ? (
             <>

@@ -32,7 +32,7 @@ export default async function LoginPage({ searchParams }: Props) {
         lede="Sign in to keep your stamps and to review the exhibits you have visited. Browsing, 3D and AR never need an account."
       />
 
-      <main className="mx-auto w-full max-w-md px-5 py-12 sm:px-8">
+      <main id="main" tabIndex={-1} className="mx-auto w-full max-w-md px-5 py-12 sm:px-8">
         <div className="border border-ink/12 bg-paper p-6">
           <LoginForm next={next} />
         </div>

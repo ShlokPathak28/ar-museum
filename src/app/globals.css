@@ -30,6 +30,19 @@
   --font-mono: var(--font-code), ui-monospace, "SFMono-Regular", monospace;
 }
 
+/*
+ * Contrast floor (WCAG AA, measured with axe at 100% zoom).
+ *
+ * Body copy clears it easily: ink on chalk is 16.1:1, chalk on vault 17.4:1.
+ * Muted type is written as chalk opacity, and /50 is the darkest usable step
+ * (4.8:1 on vault, 4.8:1 on the header's #171511); /45 drops to 4.08:1 and
+ * fails. On the light wall the same applies to ink-soft: solid is 6.5:1,
+ * /85 is 4.6:1, anything dimmer fails.
+ *
+ * Borders, rules and separators may sit below that — they are decoration and
+ * carry no text — but anything with a label needs the floor.
+ */
+
 @layer base {
   html {
     color-scheme: light;
@@ -45,10 +58,23 @@
 
   /* One focus token for the whole site. Model hotspots, filter pills and the
      viewer tabs all live in shadow-ish or overflow-hidden boxes, so a visible
-     ring is the only thing that tells a keyboard user where they are. */
+     ring is the only thing that tells a keyboard user where they are.
+
+     Two tones, because the site has two temperatures: oxblood carries on the
+     chalk walls (9.2:1), but it is only 1.6:1 on vault, so a pale halo does
+     the work there. One of the two always clears the 3:1 non-text minimum. */
   :focus-visible {
-    outline: 2px solid var(--color-oxblood);
-    outline-offset: 3px;
+    outline: 2px solid var(--color-oxblood-soft);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 5px rgb(251 250 246 / 0.75);
+  }
+
+  /* The skip link parks focus on <main>. A ring around the whole page would be
+     noise, not orientation — the scroll to the content is the signal, and the
+     next Tab reveals a real control. */
+  main[tabindex="-1"]:focus-visible {
+    outline: none;
+    box-shadow: none;
   }
 }
 

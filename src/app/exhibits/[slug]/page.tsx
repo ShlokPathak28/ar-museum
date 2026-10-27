@@ -185,14 +185,14 @@ export default async function ExhibitPage({ params }: Params) {
         title={exhibit.title}
         lede={exhibit.subtitle ?? exhibit.summary}
         aside={
-          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-chalk/45">
+          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-chalk/50">
             {exhibit.era}
             {period ? ` · ${period}` : ""}
           </p>
         }
       />
 
-      <main className="mx-auto w-full max-w-6xl px-5 pb-24 sm:px-8">
+      <main id="main" tabIndex={-1} className="mx-auto w-full max-w-6xl px-5 pb-24 sm:px-8">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}

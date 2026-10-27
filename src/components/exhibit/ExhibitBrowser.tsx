@@ -123,7 +123,7 @@ export default function ExhibitBrowser({ exhibits }: { exhibits: BrowseExhibit[]
               value={filters.q}
               onChange={(event) => update({ q: event.target.value })}
               placeholder="Search title, era, or tag…"
-              className="w-full border border-ink/15 bg-chalk px-3 py-2 text-sm placeholder:text-ink-soft/70"
+              className="w-full border border-ink/15 bg-chalk px-3 py-2 text-sm placeholder:text-ink-soft"
             />
           </div>
 

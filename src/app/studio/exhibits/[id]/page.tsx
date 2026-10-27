@@ -48,7 +48,7 @@ export default async function EditExhibitPage({ params }: Props) {
   const published = exhibit.status === "PUBLISHED";
 
   return (
-    <main className="mx-auto w-full max-w-4xl px-5 pb-24 pt-10 sm:px-8">
+    <main id="main" tabIndex={-1} className="mx-auto w-full max-w-4xl px-5 pb-24 pt-10 sm:px-8">
       <div className="flex flex-wrap items-start justify-between gap-4 border-b border-ink/15 pb-5">
         <div>
           <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-oxblood">
