@@ -17,14 +17,14 @@ export default function AuthMenu() {
   const { data, isPending } = authClient.useSession();
 
   if (isPending) {
-    return <span aria-hidden className="h-6 w-16 animate-pulse rounded-full bg-ink/5" />;
+    return <span aria-hidden className="h-2.5 w-9 animate-pulse bg-ink/[0.07]" />;
   }
 
   if (!data?.user) {
     return (
       <Link
         href="/login"
-        className="rounded-full border border-ink/15 px-3 py-1 font-mono text-[11px] uppercase tracking-widest text-ink-soft transition-colors hover:border-ink/40 hover:text-ink"
+        className="text-[12px] text-ink-soft transition-colors hover:text-ink sm:text-[13px]"
       >
         Sign in
       </Link>
@@ -32,16 +32,13 @@ export default function AuthMenu() {
   }
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-3 sm:gap-4">
       <Link
         href="/passport"
-        className="rounded-full border border-ink/15 px-3 py-1 font-mono text-[11px] uppercase tracking-widest text-ink-soft transition-colors hover:border-ink/40 hover:text-ink"
+        className="text-[12px] text-ink-soft transition-colors hover:text-ink sm:text-[13px]"
       >
         Passport
       </Link>
-      <span className="hidden max-w-[10rem] truncate text-sm text-ink-soft sm:inline">
-        {data.user.name}
-      </span>
       <SignOutButton />
     </div>
   );

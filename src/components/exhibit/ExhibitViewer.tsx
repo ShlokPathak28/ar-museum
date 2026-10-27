@@ -30,6 +30,7 @@ type ExhibitViewerProps = {
   hotspots: HotspotData[];
   caption?: string | null;
   usdzUrl?: string | null;
+  posterSrc?: string;
 };
 
 export default function ExhibitViewer({
@@ -38,6 +39,7 @@ export default function ExhibitViewer({
   hotspots,
   caption,
   usdzUrl,
+  posterSrc,
 }: ExhibitViewerProps) {
   const [tab, setTab] = useState<"object" | "reconstruction">("object");
   const [material, setMaterial] = useState<MaterialMode>("textured");
@@ -48,12 +50,12 @@ export default function ExhibitViewer({
   return (
     <section className="mt-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="inline-flex rounded-full border border-ink/15 bg-paper p-1" role="group" aria-label="Viewer mode">
+        <div className="inline-flex border border-ink/15 bg-paper" role="group" aria-label="Viewer mode">
           <button
             type="button"
             aria-pressed={tab === "object"}
             onClick={() => setTab("object")}
-            className={`rounded-full px-3.5 py-1.5 text-sm transition-colors ${
+            className={`px-3.5 py-1.5 text-sm transition-colors ${
               tab === "object" ? "bg-ink text-paper" : "text-ink-soft hover:text-ink"
             }`}
           >
@@ -63,7 +65,7 @@ export default function ExhibitViewer({
             type="button"
             aria-pressed={tab === "reconstruction"}
             onClick={() => setTab("reconstruction")}
-            className={`rounded-full px-3.5 py-1.5 text-sm transition-colors ${
+            className={`px-3.5 py-1.5 text-sm transition-colors ${
               tab === "reconstruction" ? "bg-ink text-paper" : "text-ink-soft hover:text-ink"
             }`}
           >
@@ -72,15 +74,15 @@ export default function ExhibitViewer({
         </div>
 
         {tab === "reconstruction" ? (
-          <div className="inline-flex rounded-full border border-ink/15 bg-paper p-1" role="group" aria-label="Material state">
+          <div className="inline-flex border border-ink/15 bg-paper" role="group" aria-label="Material state">
             {MATERIALS.map((entry) => (
               <button
                 key={entry.mode}
                 type="button"
                 aria-pressed={material === entry.mode}
                 onClick={() => setMaterial(entry.mode)}
-                className={`rounded-full px-3 py-1.5 font-mono text-[11px] uppercase tracking-widest transition-colors ${
-                  material === entry.mode ? "bg-ochre text-paper" : "text-ink-soft hover:text-ink"
+                className={`px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] transition-colors ${
+                  material === entry.mode ? "bg-oxblood text-paper" : "text-ink-soft hover:text-ink"
                 }`}
               >
                 {entry.label}
@@ -90,7 +92,7 @@ export default function ExhibitViewer({
         ) : null}
       </div>
 
-      <div className="mt-3 h-[55vh] min-h-[320px] overflow-hidden rounded-2xl border border-ink/10 bg-sand-deep">
+      <div className="mt-3 h-[55vh] min-h-[320px] overflow-hidden border border-ink/12 bg-chalk-deep">
         {tab === "object" ? (
           <ModelViewer
             src={modelUrl}
@@ -99,6 +101,7 @@ export default function ExhibitViewer({
             selectedHotspot={selected}
             onSelectHotspot={setSelected}
             iosSrc={usdzUrl}
+            posterSrc={posterSrc}
           />
         ) : (
           <ReconstructionViewer src={modelUrl} alt={alt} mode={material} />
@@ -124,9 +127,9 @@ export default function ExhibitViewer({
                   type="button"
                   aria-pressed={active}
                   onClick={() => setSelected(active ? null : entry.id)}
-                  className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
+                  className={`border px-3 py-1.5 text-sm transition-colors ${
                     active
-                      ? "border-ochre bg-ochre/10 text-ochre"
+                      ? "border-oxblood bg-oxblood/10 text-oxblood"
                       : "border-ink/20 text-ink-soft hover:border-ink/40"
                   }`}
                 >
@@ -139,7 +142,7 @@ export default function ExhibitViewer({
 
           <div aria-live="polite" className="min-h-[1px]">
             {hotspot ? (
-              <div className="mt-3 rounded-xl border border-ochre/25 bg-ochre/5 p-4">
+              <div className="mt-3 border-l-2 border-oxblood bg-oxblood/5 p-4">
                 <div className="flex items-start justify-between gap-4">
                   <h3 className="font-medium">{hotspot.label}</h3>
                   <button

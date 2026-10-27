@@ -16,7 +16,7 @@ export default function PanoramaSpikePage() {
         <div className="flex items-baseline gap-4">
           <Link
             href="/spike/ar"
-            className="font-mono text-[11px] uppercase tracking-widest text-ochre hover:underline"
+            className="font-mono text-[11px] uppercase tracking-widest text-oxblood hover:underline"
           >
             AR spike →
           </Link>

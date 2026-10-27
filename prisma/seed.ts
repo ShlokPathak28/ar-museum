@@ -12,13 +12,17 @@ const ROOMS = [
     slug: "material-worlds",
     name: "Material Worlds",
     floor: "Ground floor",
-    panoramaUrl: null,
+    intro:
+      "Clay, metal and pigment, side by side. The ground floor follows three materials from the ground they come from to the stories they carry.",
+    panoramaUrl: "/panoramas/material-worlds.jpg",
   },
   {
     slug: "everyday-objects",
     name: "Everyday Objects",
     floor: "First floor",
-    panoramaUrl: null,
+    intro:
+      "The first floor is about use: the things a household reaches for daily, and the small decisions that made them last.",
+    panoramaUrl: "/panoramas/everyday-objects.jpg",
   },
 ];
 
@@ -45,7 +49,7 @@ The museum's example was acquired in the 1920s and has been in the collection si
       "The legs were never strong enough to stand",
       "Left ear reconstructed in the 1920s and left visible",
     ]),
-    heroImage: "/images/exhibits/terracotta-horse.svg",
+    heroImage: "/images/exhibits/terracotta-horse.jpg",
     tags: "terracotta,sculpture,votives",
     status: "PUBLISHED",
     hotspots: [
@@ -89,7 +93,7 @@ This base once held a hookah; the pipe and bowl are lost.`,
       "Silver inlay added before the final dip",
       "Pipe and bowl are lost; only the base survives",
     ]),
-    heroImage: "/images/exhibits/bidri-hookah-base.svg",
+    heroImage: "/images/exhibits/bidri-hookah-base.jpg",
     modelUrl: "/models/baluster-vase.glb",
     gallery: [
       {
@@ -144,7 +148,7 @@ Red comes from vermilion, yellow from orpiment, black from lamp soot.`,
       "Mineral pigments: vermilion, orpiment, soot",
       "First and last panels are missing",
     ]),
-    heroImage: "/images/exhibits/pattachitra-scroll.svg",
+    heroImage: "/images/exhibits/pattachitra-scroll.jpg",
     tags: "textile,painting,odisha",
     status: "PUBLISHED",
   },
@@ -170,7 +174,7 @@ The dent on one side is post-acquisition damage, recorded in the 1974 condition 
       "False measures could be seized and destroyed",
       "Dent on one side recorded in the 1974 report",
     ]),
-    heroImage: "/images/exhibits/brass-measuring-vessel.svg",
+    heroImage: "/images/exhibits/brass-measuring-vessel.jpg",
     modelUrl: "/models/stoneware-jug.glb",
     gallery: [
       {
@@ -225,7 +229,7 @@ The indigo has survived better than the madder red, which has faded to a warm br
       "Indigo outlasted the madder red",
       "Border reduced to repeating florals for European buyers",
     ]),
-    heroImage: "/images/exhibits/kalamkari-fragment.svg",
+    heroImage: "/images/exhibits/kalamkari-fragment.jpg",
     tags: "textile,trade,dye",
     status: "DRAFT",
   },
@@ -251,7 +255,7 @@ Boxes like this travelled with clerks and scribes, which is why so many survive 
       "Bone inlay set in lac, sanded flush",
       "Repaired hinges are common on surviving examples",
     ]),
-    heroImage: "/images/exhibits/inlaid-writing-box.svg",
+    heroImage: "/images/exhibits/inlaid-writing-box.jpg",
     modelUrl: "/models/patent-model-box.glb",
     gallery: [
       {

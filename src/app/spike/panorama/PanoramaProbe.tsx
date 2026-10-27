@@ -403,7 +403,7 @@ export default function PanoramaProbe() {
               Recentre north
             </button>
           </div>
-          {error ? <p className="mt-3 text-sm text-brick">{error}</p> : null}
+          {error ? <p className="mt-3 text-sm text-rust">{error}</p> : null}
         </div>
 
         <div className="rounded-xl border border-ink/10 bg-paper p-5 text-sm leading-relaxed text-ink-soft">

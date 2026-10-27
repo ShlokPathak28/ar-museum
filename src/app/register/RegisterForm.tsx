@@ -56,7 +56,7 @@ export default function RegisterForm({ next }: { next: string }) {
           required
           value={name}
           onChange={(event) => setName(event.target.value)}
-          className="mt-1.5 w-full rounded-lg border border-ink/15 bg-paper px-3 py-2 text-sm outline-none focus-visible:border-ochre"
+          className="mt-1.5 w-full border border-ink/15 bg-paper px-3 py-2 text-sm outline-none focus-visible:border-oxblood"
         />
       </div>
 
@@ -75,7 +75,7 @@ export default function RegisterForm({ next }: { next: string }) {
           required
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          className="mt-1.5 w-full rounded-lg border border-ink/15 bg-paper px-3 py-2 text-sm outline-none focus-visible:border-ochre"
+          className="mt-1.5 w-full border border-ink/15 bg-paper px-3 py-2 text-sm outline-none focus-visible:border-oxblood"
         />
       </div>
 
@@ -95,13 +95,13 @@ export default function RegisterForm({ next }: { next: string }) {
           minLength={MIN_PASSWORD}
           value={password}
           onChange={(event) => setPassword(event.target.value)}
-          className="mt-1.5 w-full rounded-lg border border-ink/15 bg-paper px-3 py-2 text-sm outline-none focus-visible:border-ochre"
+          className="mt-1.5 w-full border border-ink/15 bg-paper px-3 py-2 text-sm outline-none focus-visible:border-oxblood"
         />
         <p className="mt-1.5 text-xs text-ink-soft">At least {MIN_PASSWORD} characters.</p>
       </div>
 
       {error ? (
-        <p role="alert" className="rounded-lg bg-ochre/10 px-3 py-2 text-sm text-ochre">
+        <p role="alert" className="bg-oxblood/10 px-3 py-2 text-sm text-oxblood">
           {error}
         </p>
       ) : null}
@@ -109,14 +109,14 @@ export default function RegisterForm({ next }: { next: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper disabled:opacity-60"
+        className="w-full bg-ink px-4 py-2.5 text-sm font-medium text-paper disabled:opacity-60"
       >
         {pending ? "Creating account…" : "Create account"}
       </button>
 
       <p className="text-sm text-ink-soft">
         Already registered?{" "}
-        <Link href={withNext("/login", next)} className="font-medium text-ochre hover:underline">
+        <Link href={withNext("/login", next)} className="font-medium text-oxblood hover:underline">
           Sign in
         </Link>
       </p>

@@ -163,11 +163,11 @@ export default function ReviewSection({ exhibitId, slug, reviews, average, count
       </div>
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[0.85fr_1.15fr]">
-        <div className="rounded-xl border border-ink/10 bg-paper p-5">
+        <div className="border border-ink/10 bg-paper p-5">
           {sessionPending ? (
             <div aria-hidden className="space-y-3">
-              <span className="block h-6 w-32 animate-pulse rounded bg-ink/5" />
-              <span className="block h-24 w-full animate-pulse rounded bg-ink/5" />
+              <span className="block h-6 w-32 animate-pulse bg-ink/5" />
+              <span className="block h-24 w-full animate-pulse bg-ink/5" />
             </div>
           ) : !session?.user ? (
             <>
@@ -177,7 +177,7 @@ export default function ReviewSection({ exhibitId, slug, reviews, average, count
               </p>
               <Link
                 href={`/login?next=${encodeURIComponent(`/exhibits/${slug}`)}`}
-                className="mt-4 inline-block rounded-full bg-ink px-4 py-2 text-sm font-medium text-paper"
+                className="mt-4 inline-block bg-ink px-4 py-2 text-sm font-medium text-paper"
               >
                 Sign in to review
               </Link>
@@ -199,8 +199,8 @@ export default function ReviewSection({ exhibitId, slug, reviews, average, count
                       />
                       <span
                         aria-hidden="true"
-                        className={`text-2xl leading-none transition-colors peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ochre ${
-                          value <= rating ? "text-ochre" : "text-ink/20"
+                        className={`text-2xl leading-none transition-colors peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-oxblood ${
+                          value <= rating ? "text-oxblood" : "text-ink/20"
                         }`}
                       >
                         ★
@@ -210,7 +210,7 @@ export default function ReviewSection({ exhibitId, slug, reviews, average, count
                   ))}
                 </div>
                 {errors.rating ? (
-                  <p role="alert" className="mt-2 text-sm text-ochre">
+                  <p role="alert" className="mt-2 text-sm text-oxblood">
                     {errors.rating.message}
                   </p>
                 ) : null}
@@ -228,17 +228,17 @@ export default function ReviewSection({ exhibitId, slug, reviews, average, count
                   rows={5}
                   placeholder="What caught your eye? A detail, a material, a story."
                   {...register("body")}
-                  className="mt-1.5 w-full rounded-lg border border-ink/15 bg-paper px-3 py-2 text-sm leading-relaxed outline-none focus-visible:border-ochre"
+                  className="mt-1.5 w-full border border-ink/15 bg-paper px-3 py-2 text-sm leading-relaxed outline-none focus-visible:border-oxblood"
                 />
                 {errors.body ? (
-                  <p role="alert" className="mt-2 text-sm text-ochre">
+                  <p role="alert" className="mt-2 text-sm text-oxblood">
                     {errors.body.message}
                   </p>
                 ) : null}
               </div>
 
               {formError ? (
-                <p role="alert" className="rounded-lg bg-ochre/10 px-3 py-2 text-sm text-ochre">
+                <p role="alert" className="bg-oxblood/10 px-3 py-2 text-sm text-oxblood">
                   {formError}
                 </p>
               ) : null}
@@ -247,7 +247,7 @@ export default function ReviewSection({ exhibitId, slug, reviews, average, count
                 <button
                   type="submit"
                   disabled={isPending}
-                  className="rounded-full bg-ink px-4 py-2 text-sm font-medium text-paper disabled:opacity-60"
+                  className="bg-ink px-4 py-2 text-sm font-medium text-paper disabled:opacity-60"
                 >
                   {isPending ? "Saving…" : myReviewId ? "Update review" : "Post review"}
                 </button>
@@ -256,7 +256,7 @@ export default function ReviewSection({ exhibitId, slug, reviews, average, count
                     type="button"
                     onClick={onDelete}
                     disabled={isPending}
-                    className="font-mono text-[11px] uppercase tracking-widest text-ink-soft hover:text-brick disabled:opacity-60"
+                    className="font-mono text-[11px] uppercase tracking-widest text-ink-soft hover:text-rust disabled:opacity-60"
                   >
                     Delete my review
                   </button>
@@ -268,15 +268,15 @@ export default function ReviewSection({ exhibitId, slug, reviews, average, count
 
         <ul className="space-y-3">
           {optimisticReviews.length === 0 ? (
-            <li className="rounded-xl border border-dashed border-ink/20 px-5 py-8 text-center text-sm text-ink-soft">
+            <li className="border border-dashed border-ink/20 px-5 py-8 text-center text-sm text-ink-soft">
               No one has reviewed this object yet. Be the first.
             </li>
           ) : (
             optimisticReviews.map((review) => (
               <li
                 key={review.id}
-                className={`rounded-xl border p-5 ${
-                  review.isMine ? "border-ochre/30 bg-ochre/5" : "border-ink/10 bg-paper"
+                className={`border p-5 ${
+                  review.isMine ? "border-oxblood/30 bg-oxblood/5" : "border-ink/10 bg-paper"
                 }`}
               >
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -286,7 +286,7 @@ export default function ReviewSection({ exhibitId, slug, reviews, average, count
                   </p>
                   <p
                     aria-label={`${review.rating} out of 5`}
-                    className="font-mono text-xs tracking-widest text-ochre"
+                    className="font-mono text-xs tracking-widest text-oxblood"
                   >
                     {"★".repeat(review.rating)}
                     {"☆".repeat(5 - review.rating)}

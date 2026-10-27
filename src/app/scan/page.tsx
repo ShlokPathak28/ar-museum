@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
+import SiteHeader from "@/components/site/SiteHeader";
 import { prisma } from "@/lib/db";
 
 import ScanPanel from "./ScanPanel";
@@ -40,33 +40,19 @@ export default async function ScanPage() {
   });
 
   return (
-    <main className="mx-auto w-full max-w-4xl px-5 pb-24 sm:px-8">
-      <header className="flex items-center justify-between gap-4 py-6">
-        <Link href="/" className="flex items-baseline gap-3">
-          <span className="font-mono text-sm uppercase tracking-[0.2em] text-ochre">
-            Dharohar
-          </span>
-          <span className="hidden text-sm text-ink-soft sm:inline">
-            Museum of Material Culture
-          </span>
-        </Link>
-        <Link
-          href="/exhibits"
-          className="rounded-full border border-ink/15 px-3 py-1 font-mono text-[11px] uppercase tracking-widest text-ink-soft transition-colors hover:border-ink/40"
-        >
-          Browse instead
-        </Link>
-      </header>
+    <>
+      <SiteHeader />
 
-      <section className="border-t border-ink/10 pt-10">
-        <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-ink-soft">
-          Entry point
-        </p>
-        <h1 className="mt-4 font-serif text-4xl tracking-tight sm:text-5xl">Scan the card</h1>
-        <p className="mt-4 max-w-2xl leading-relaxed text-ink-soft">
-          The QR is the front door. Point the camera at a card and the exhibit opens by itself;
-          if the camera is unavailable, the short code does the same job.
-        </p>
+      <main className="mx-auto w-full max-w-4xl px-5 pb-24 sm:px-8">
+        <section className="border-t border-ink/10 pt-10">
+          <p className="font-mono text-[11px] tracking-[0.18em] text-ink-soft">
+            Entry point
+          </p>
+          <h1 className="mt-4 font-serif text-4xl tracking-tight sm:text-5xl">Scan the card</h1>
+          <p className="mt-5 max-w-2xl leading-relaxed text-ink-soft">
+            The QR is the front door. Point the camera at a card and the exhibit opens by itself;
+            if the camera is unavailable, the short code does the same job.
+          </p>
       </section>
 
       <ScanPanel codes={exhibits} />
@@ -77,8 +63,8 @@ export default async function ScanPage() {
         </h2>
         <ol className="mt-6 grid gap-4 sm:grid-cols-3">
           {STEPS.map((item) => (
-            <li key={item.step} className="rounded-xl border border-ink/10 bg-paper p-5">
-              <span className="font-mono text-[11px] tracking-[0.2em] text-ochre">{item.step}</span>
+            <li key={item.step} className="border border-ink/10 bg-paper p-5">
+              <span className="font-mono text-[11px] tracking-[0.2em] text-oxblood">{item.step}</span>
               <h3 className="mt-2 font-medium">{item.title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-ink-soft">{item.body}</p>
             </li>
@@ -86,12 +72,13 @@ export default async function ScanPage() {
         </ol>
         <p className="mt-6 text-sm leading-relaxed text-ink-soft">
           Camera access requires a secure context — HTTPS in production, or{" "}
-          <code className="rounded bg-sand-deep px-1.5 py-0.5 font-mono text-xs">
+          <code className="rounded bg-chalk-deep px-1.5 py-0.5 font-mono text-xs">
             npm run dev:https
           </code>{" "}
           locally. The code path works everywhere.
         </p>
       </section>
-    </main>
+      </main>
+    </>
   );
 }

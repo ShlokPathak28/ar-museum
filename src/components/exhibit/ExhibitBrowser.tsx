@@ -110,7 +110,7 @@ export default function ExhibitBrowser({ exhibits }: { exhibits: BrowseExhibit[]
       <form
         role="search"
         onSubmit={(event) => event.preventDefault()}
-        className="mt-8 flex flex-col gap-4 rounded-xl border border-ink/10 bg-paper p-4 sm:p-5"
+        className="mt-8 flex flex-col gap-4 border border-ink/12 bg-paper p-4 sm:p-5"
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="relative flex-1">
@@ -123,7 +123,7 @@ export default function ExhibitBrowser({ exhibits }: { exhibits: BrowseExhibit[]
               value={filters.q}
               onChange={(event) => update({ q: event.target.value })}
               placeholder="Search title, era, or tag…"
-              className="w-full rounded-lg border border-ink/15 bg-sand px-3 py-2 text-sm placeholder:text-ink-soft/70"
+              className="w-full border border-ink/15 bg-chalk px-3 py-2 text-sm placeholder:text-ink-soft/70"
             />
           </div>
 
@@ -135,7 +135,7 @@ export default function ExhibitBrowser({ exhibits }: { exhibits: BrowseExhibit[]
               id="exhibit-tag"
               value={filters.tag}
               onChange={(event) => update({ tag: event.target.value })}
-              className="rounded-lg border border-ink/15 bg-sand px-3 py-2 text-sm"
+              className="border border-ink/15 bg-chalk px-3 py-2 text-sm"
             >
               <option value={ALL}>All tags</option>
               {tags.map((tag) => (
@@ -145,12 +145,12 @@ export default function ExhibitBrowser({ exhibits }: { exhibits: BrowseExhibit[]
               ))}
             </select>
 
-            <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-ink/15 px-3 py-2 text-sm text-ink-soft">
+            <label className="inline-flex cursor-pointer items-center gap-2 border border-ink/15 px-3 py-2 text-sm text-ink-soft">
               <input
                 type="checkbox"
                 checked={filters.only3d}
                 onChange={(event) => update({ only3d: event.target.checked })}
-                className="accent-ochre"
+                className="accent-oxblood"
               />
               Has 3D model
             </label>
@@ -169,7 +169,7 @@ export default function ExhibitBrowser({ exhibits }: { exhibits: BrowseExhibit[]
                 type="button"
                 aria-pressed={active}
                 onClick={() => update({ room: room.slug })}
-                className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
+                className={`border px-3 py-1.5 text-sm transition-colors ${
                   active
                     ? "border-ink bg-ink text-paper"
                     : "border-ink/20 text-ink-soft hover:border-ink/40"
@@ -183,14 +183,14 @@ export default function ExhibitBrowser({ exhibits }: { exhibits: BrowseExhibit[]
 
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-ink/10 pt-3">
           <p className="text-sm text-ink-soft" aria-live="polite">
-            {visible.length} of {exhibits.length} exhibits
+            {visible.length} of {exhibits.length} objects
             {filters.q ? ` matching “${filters.q.trim()}”` : ""}
           </p>
           <button
             type="button"
             onClick={() => setFilters({ q: "", room: ALL, tag: ALL, only3d: false })}
             disabled={isDefault(filters)}
-            className="font-mono text-[11px] uppercase tracking-widest text-ochre enabled:hover:underline disabled:opacity-40"
+            className="font-mono text-[11px] uppercase tracking-widest text-oxblood enabled:hover:underline disabled:opacity-40"
           >
             Clear filters
           </button>
@@ -198,13 +198,13 @@ export default function ExhibitBrowser({ exhibits }: { exhibits: BrowseExhibit[]
       </form>
 
       {visible.length > 0 ? (
-        <div className="mt-10 grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="exhibit-grid mt-10 grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
           {visible.map((exhibit) => (
             <ExhibitCard key={exhibit.slug} exhibit={exhibit} showSummary />
           ))}
         </div>
       ) : (
-        <div className="mt-10 rounded-xl border border-dashed border-ink/20 bg-paper/60 px-6 py-14 text-center">
+        <div className="mt-10 border border-dashed border-ink/20 bg-paper/60 px-6 py-14 text-center">
           <p className="font-serif text-xl">Nothing in the collection matches that.</p>
           <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-ink-soft">
             Try a broader term, or clear the filters to see all {exhibits.length} objects.
@@ -212,7 +212,7 @@ export default function ExhibitBrowser({ exhibits }: { exhibits: BrowseExhibit[]
           <button
             type="button"
             onClick={() => setFilters({ q: "", room: ALL, tag: ALL, only3d: false })}
-            className="mt-5 rounded-full bg-ink px-4 py-2 text-sm font-medium text-paper"
+            className="mt-5 bg-ink px-4 py-2 text-sm font-medium text-paper transition-colors hover:bg-oxblood"
           >
             Clear filters
           </button>

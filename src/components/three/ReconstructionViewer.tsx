@@ -223,7 +223,7 @@ export default function ReconstructionViewer({ src, alt, mode }: ReconstructionV
         </p>
       ) : null}
       {status === "error" ? (
-        <p className="absolute inset-0 flex items-center justify-center px-6 text-center text-sm text-brick">
+        <p className="absolute inset-0 flex items-center justify-center px-6 text-center text-sm text-rust">
           {error ?? "The reconstruction could not be shown."}
         </p>
       ) : null}

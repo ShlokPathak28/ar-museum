@@ -68,10 +68,10 @@ export default async function MarkersPage() {
         {cards.map((card) => (
           <article
             key={card.id}
-            className="flex flex-col rounded-xl border border-ink/10 bg-paper p-5 print:break-inside-avoid print:rounded-none print:border-ink/30"
+            className="flex flex-col border border-ink/10 bg-paper p-5 print:break-inside-avoid print:rounded-none print:border-ink/30"
           >
             <div className="flex items-start gap-4">
-              <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-sand-deep">
+              <div className="h-20 w-20 shrink-0 overflow-hidden bg-chalk-deep">
                 <Image
                   src={card.heroImage}
                   alt={card.title}
@@ -82,7 +82,7 @@ export default async function MarkersPage() {
                 />
               </div>
               <div className="min-w-0">
-                <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-ochre">
+                <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-oxblood">
                   Dharohar
                 </p>
                 <h2 className="mt-1 font-serif text-lg leading-snug">{card.title}</h2>
@@ -98,7 +98,7 @@ export default async function MarkersPage() {
                 <p className="mt-1 font-mono text-2xl tracking-[0.15em]">{card.code}</p>
                 <a
                   href={`/api/qr/${card.code}`}
-                  className="mt-1 inline-block font-mono text-[10px] uppercase tracking-widest text-ochre hover:underline print:hidden"
+                  className="mt-1 inline-block font-mono text-[10px] uppercase tracking-widest text-oxblood hover:underline print:hidden"
                 >
                   QR PNG →
                 </a>

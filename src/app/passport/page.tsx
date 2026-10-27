@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import SignOutButton from "@/components/ui/SignOutButton";
+import SiteHeader from "@/components/site/SiteHeader";
 import { formatDate } from "@/lib/format-date";
 import { claimDeviceStamps, getPassport } from "@/lib/passport";
 import { getViewer } from "@/lib/session";
@@ -31,28 +32,24 @@ export default async function PassportPage() {
   const remaining = passport.total - passport.collected;
 
   return (
-    <main className="mx-auto w-full max-w-5xl px-5 pb-24 sm:px-8">
-      <header className="flex flex-wrap items-center justify-between gap-4 py-6">
-        <Link href="/" className="flex items-baseline gap-3">
-          <span className="font-mono text-sm uppercase tracking-[0.2em] text-ochre">Dharohar</span>
-          <span className="hidden text-sm text-ink-soft sm:inline">Visitor passport</span>
-        </Link>
-        <div className="flex items-center gap-4">
-          <span className="max-w-[12rem] truncate text-sm text-ink-soft">{passport.name}</span>
-          <SignOutButton redirectTo="/" />
-        </div>
-      </header>
+    <>
+      <SiteHeader />
 
-      <section className="border-t border-ink/10 pt-10">
-        <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-ink-soft">
-          Collected on site
-        </p>
-        <h1 className="mt-4 font-serif text-4xl tracking-tight sm:text-5xl">Your passport</h1>
-        <p className="mt-4 max-w-2xl leading-relaxed text-ink-soft">
-          Every QR card you open stamps this page. An account keeps the stamps, so the collection
-          follows you to another device — and anything you scanned as a guest is claimed the first
-          time you sign in.
-        </p>
+      <main className="mx-auto w-full max-w-5xl px-5 pb-24 sm:px-8">
+        <section className="border-t border-ink/10 pt-10">
+          <p className="font-mono text-[11px] tracking-[0.18em] text-ink-soft">
+            Collected on site
+          </p>
+          <h1 className="mt-4 font-serif text-4xl tracking-tight sm:text-5xl">Your passport</h1>
+          <p className="mt-5 max-w-2xl leading-relaxed text-ink-soft">
+            Every QR card you open stamps this page. An account keeps the stamps, so the collection
+            follows you to another device, and anything you scanned as a guest is claimed the first
+            time you sign in.
+          </p>
+          <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-ink-soft">
+            <span>Signed in as {passport.name}</span>
+            <SignOutButton redirectTo="/" />
+          </div>
 
         <div className="mt-8 grid gap-8 sm:grid-cols-[auto_1fr] sm:items-center">
           <div className="relative grid place-items-center">
@@ -72,7 +69,7 @@ export default async function PassportPage() {
                 fill="none"
                 strokeWidth="7"
                 strokeLinecap="round"
-                className="stroke-ochre"
+                className="stroke-oxblood"
                 strokeDasharray={`${dash} ${CIRCUMFERENCE}`}
               />
             </svg>
@@ -88,7 +85,7 @@ export default async function PassportPage() {
           <div>
             <div className="h-1.5 w-full overflow-hidden rounded-full bg-ink/10">
               <div
-                className="h-full rounded-full bg-ochre"
+                className="h-full rounded-full bg-oxblood"
                 style={{ width: `${passport.percent}%` }}
               />
             </div>
@@ -102,8 +99,8 @@ export default async function PassportPage() {
               {passport.badges.map((badge) => (
                 <li
                   key={badge.id}
-                  className={`rounded-lg border px-4 py-3 ${
-                    badge.earned ? "border-ochre/30 bg-paper" : "border-dashed border-ink/15"
+                  className={`border px-4 py-3 ${
+                    badge.earned ? "border-oxblood/30 bg-paper" : "border-dashed border-ink/15"
                   }`}
                 >
                   <div className="flex items-baseline justify-between gap-3">
@@ -112,7 +109,7 @@ export default async function PassportPage() {
                     </p>
                     <span
                       className={`font-mono text-[10px] uppercase tracking-widest ${
-                        badge.earned ? "text-ochre" : "text-ink-soft/70"
+                        badge.earned ? "text-oxblood" : "text-ink-soft/70"
                       }`}
                     >
                       {badge.earned ? "Earned" : "Locked"}
@@ -133,7 +130,7 @@ export default async function PassportPage() {
           </h2>
           <Link
             href="/scan"
-            className="font-mono text-[11px] uppercase tracking-widest text-ochre hover:underline"
+            className="font-mono text-[11px] uppercase tracking-widest text-oxblood hover:underline"
           >
             Scan another card →
           </Link>
@@ -146,14 +143,14 @@ export default async function PassportPage() {
             return (
               <li
                 key={exhibit.id}
-                className={`rounded-xl border p-4 ${
-                  collected ? "border-ochre/30 bg-paper" : "border-dashed border-ink/15"
+                className={`border p-4 ${
+                  collected ? "border-oxblood/30 bg-paper" : "border-dashed border-ink/15"
                 }`}
               >
                 <div className="flex items-baseline justify-between gap-3">
                   <span
                     className={`font-mono text-[11px] tracking-[0.2em] ${
-                      collected ? "text-ochre" : "text-ink-soft"
+                      collected ? "text-oxblood" : "text-ink-soft"
                     }`}
                   >
                     {exhibit.code}
@@ -171,7 +168,7 @@ export default async function PassportPage() {
                 <p className="mt-1 text-xs text-ink-soft">{exhibit.room}</p>
                 <p
                   className={`mt-3 font-mono text-[10px] uppercase tracking-widest ${
-                    collected ? "text-ochre" : "text-ink-soft/70"
+                    collected ? "text-oxblood" : "text-ink-soft/70"
                   }`}
                 >
                   {collected ? "Collected" : "Not collected"}
@@ -193,13 +190,13 @@ export default async function PassportPage() {
         </div>
 
         {passport.reviews.length === 0 ? (
-          <p className="mt-6 rounded-xl border border-dashed border-ink/20 px-5 py-8 text-center text-sm text-ink-soft">
+          <p className="mt-6 border border-dashed border-ink/20 px-5 py-8 text-center text-sm text-ink-soft">
             No reviews yet. Open an exhibit and tell the next visitor what to notice.
           </p>
         ) : (
           <ul className="mt-6 space-y-3">
             {passport.reviews.map((review) => (
-              <li key={review.id} className="rounded-xl border border-ink/10 bg-paper p-5">
+              <li key={review.id} className="border border-ink/10 bg-paper p-5">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <Link
                     href={`/exhibits/${review.exhibit.slug}`}
@@ -209,7 +206,7 @@ export default async function PassportPage() {
                   </Link>
                   <p
                     aria-label={`${review.rating} out of 5`}
-                    className="font-mono text-xs tracking-widest text-ochre"
+                    className="font-mono text-xs tracking-widest text-oxblood"
                   >
                     {"★".repeat(review.rating)}
                     {"☆".repeat(5 - review.rating)}
@@ -225,14 +222,15 @@ export default async function PassportPage() {
         )}
       </section>
 
-      <footer className="mt-14 flex flex-wrap gap-5 border-t border-ink/10 pt-6 font-mono text-[11px] uppercase tracking-widest text-ink-soft">
-        <Link href="/exhibits" className="hover:text-ink">
+      <footer className="mt-14 flex flex-wrap gap-5 border-t border-ink/10 pt-6 text-[13px] text-ink-soft">
+        <Link href="/exhibits" className="transition-colors hover:text-ink">
           Browse the collection
         </Link>
-        <Link href="/scan" className="hover:text-ink">
+        <Link href="/scan" className="transition-colors hover:text-ink">
           Scan a card
         </Link>
       </footer>
-    </main>
+      </main>
+    </>
   );
 }

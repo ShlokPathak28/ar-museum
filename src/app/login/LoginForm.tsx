@@ -48,7 +48,7 @@ export default function LoginForm({ next }: { next: string }) {
           required
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          className="mt-1.5 w-full rounded-lg border border-ink/15 bg-paper px-3 py-2 text-sm outline-none focus-visible:border-ochre"
+          className="mt-1.5 w-full border border-ink/15 bg-paper px-3 py-2 text-sm outline-none focus-visible:border-oxblood"
         />
       </div>
 
@@ -67,12 +67,12 @@ export default function LoginForm({ next }: { next: string }) {
           required
           value={password}
           onChange={(event) => setPassword(event.target.value)}
-          className="mt-1.5 w-full rounded-lg border border-ink/15 bg-paper px-3 py-2 text-sm outline-none focus-visible:border-ochre"
+          className="mt-1.5 w-full border border-ink/15 bg-paper px-3 py-2 text-sm outline-none focus-visible:border-oxblood"
         />
       </div>
 
       {error ? (
-        <p role="alert" className="rounded-lg bg-ochre/10 px-3 py-2 text-sm text-ochre">
+        <p role="alert" className="bg-oxblood/10 px-3 py-2 text-sm text-oxblood">
           {error}
         </p>
       ) : null}
@@ -80,14 +80,14 @@ export default function LoginForm({ next }: { next: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper disabled:opacity-60"
+        className="w-full bg-ink px-4 py-2.5 text-sm font-medium text-paper disabled:opacity-60"
       >
         {pending ? "Signing in…" : "Sign in"}
       </button>
 
       <p className="text-sm text-ink-soft">
         No account yet?{" "}
-        <Link href={withNext("/register", next)} className="font-medium text-ochre hover:underline">
+        <Link href={withNext("/register", next)} className="font-medium text-oxblood hover:underline">
           Create one
         </Link>
       </p>

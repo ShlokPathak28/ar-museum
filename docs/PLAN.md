@@ -453,7 +453,7 @@ what changed from the plan, and what the next week inherits.
 - **Open — model swap:** the three modelled exhibits still point at CC0 stand-ins (`baluster-vase`, `stoneware-jug`, `patent-model-box`). The intended `bidri-hookah-base` / `brass-measuring-vessel` / `inlaid-writing-box` GLBs are not in the repo, and Smithsonian returns 403 from this network, so the swap waits on the files landing in `public/models/`.
 - **Auth merge:** the `feat/auth-nextjs` branch is now on `main` as scaffolding. Dependencies are installed and the module typechecks against better-auth 1.7 (`prismaAdapter(prisma, { provider: "sqlite" })`, `nextCookies()`), but the Prisma schema has no `session` / `account` / `verification` tables yet, so `/api/auth/*` is not usable until week 2.
 
-### Week 2 — in progress
+### Week 2 — closed
 
 **Auth slice (26 Oct)** — closed
 
@@ -492,22 +492,47 @@ what changed from the plan, and what the next week inherits.
 - **Verified end-to-end** with a signed-in cookie jar: anonymous `/passport` 307 → `/login?next=%2Fpassport`; a guest scan sets the device cookie and the stamp is claimed on the first passport load; a review posted through the action appears on the exhibit page immediately (revalidatePath), then on `/passport`; editing keeps one row; a 7-character body is rejected; delete removes it from both pages.
 - **Not verified:** the review form in a real browser — no desktop browser is installed on this machine, so the Server Action was exercised over HTTP instead.
 
-**Week 2 — remaining:** the rest of `/api/v1/*` (exhibits, stamps, moderation), admin review moderation UI, `/studio` exhibit CRUD.
+**Deferred to Week 4:** the rest of `/api/v1/*` (exhibits, stamps, moderation), admin review moderation UI, `/studio` exhibit CRUD.
+
+### Week 3 — in progress
+
+**Room viewer (27 Oct)** — closed
+
+- **Schema:** `Room.intro` (nullable) added in migration `20261026174615_room_intro`, with seed copy for both rooms. `prisma generate` re-run — `migrate dev` still does not refresh the client.
+- **`/rooms`:** both rooms with published-object counts and their panoramas. **`/rooms/[slug]`:** intro, 360° viewer, markers, the room's published objects, and a credit line; unknown or empty rooms `notFound()`.
+- **Viewer:** plain `three` (no react-three-fiber) — an equirectangular sphere with drag/touch look, keyboard arrows, a gyro toggle that only asks for permission on a tap, and fullscreen. Markers are placed by hand-tuned `u`/`v` image fractions (`src/lib/room-markers.ts`), not by guessing model space. `three` is a dynamic import, and the panorama is painted behind the loading chunk so the room is visible immediately.
+- **Panoramas:** Poly Haven CC0 stand-ins, credited in `docs/CREDITS.md`.
+- **Verified 21/21 checks over HTTPS:** both room pages 200 with intros/markers/counts, draft `KT05` absent, unknown room 404, panorama `image/jpeg` at 1.75 MB, exhibit → room link, sitemap and home links, `?demo=1` still 200.
+- **Not verified:** gyro and the real-device VR pass — that needs the phone.
+
+**Chalk gallery redesign (27 Oct)** — closed
+
+- **Why:** the first visual review read as a generic cream-and-terracotta landing page, and the "object" images were SVG gradients. Requested change: make it feel like a museum, with a change of atmosphere on hover and an entrance on load.
+- **Palette:** cool chalk walls (`#f1f0ea`), ink (`#16140f`), oxblood (`#7a1f1a`), plus one material accent per object (clay, brass, madder, umber, bone). Global token rename `sand → chalk`, `ochre → oxblood`, `brick → rust` across `src/`.
+- **One frame:** `SiteHeader` on every public page (home, collection, rooms, room, exhibit, scan, passport, login, register). Per-page brand headers and the pill-shaped auth control are gone; the header is sticky and translucent so the wall shows through.
+- **Home:** rebuilt around a single featured object with a wall label, a three-mode band (3D / AR / VR), the collection strip, and both rooms. Counts now come from the database instead of hardcoded copy.
+- **Entrance doors:** two plaster panels with a hairline seam part on `/` on every visit. Auto-open after 700 ms; click, Escape, Enter or Space skips; `aria-hidden`; `display:none` under `prefers-reduced-motion`; a `<noscript>` rule hides them when JavaScript is off, since nothing would open them.
+- **Hover "vibe change":** `.exhibit-grid` quiets the other cards when one is pointed at (only on hover-capable pointers, so a phone never dims a tapped card), and each card's accent colours its title, its frame and a hairline that draws itself across the caption.
+- **Photography:** six public-domain or openly licensed museum photographs (Met, Cooper Hewitt, Newark, Wikimedia) replace the SVG gradients. Each is padded — contained, never cropped — onto a 1200×900 chalk-grey plate so the six read as one catalogue. They are **stand-ins**, credited in `docs/CREDITS.md`.
+- **3D loading:** the hero photograph now sits behind `<model-viewer>`'s poster slot, so the viewer is an object while it loads rather than an empty beige box; the AR button is squared to match.
+- **Shape language:** rounded cards and pills replaced with square frames and wall-label captions on the collection, rooms, exhibit, passport, scan and auth pages. The collection's Suspense fallback is now a filter-bar skeleton instead of a blank panel.
+- **Verified:** `tsc` and `eslint` clean; Firefox headless screenshots at 1440 px and 390 px for home (with and without doors), collection, rooms, room, exhibit, scan and login; room smoke test still 21/21.
+- **Not verified:** the door transition and card dimming in a real interactive browser (headless captures the pre-animation state); real-device rendering of the new pages.
 
 ### Week 3–4 — planned
 
 #### Stretch — themed room pages
 
-**Idea.** Give each room a page with its own visual identity — surface, accent and a small motif drawn from the objects inside it — instead of every room wearing the same sand-and-ochre skin. The room page becomes the missing middle of the visit: a QR card opens one object, but nothing currently explains why these six objects sit together. A themed room page is that threshold — what the room is about, what is in it, a 360° preview once Week 3 lands, and a way into each exhibit. The theme stays on the room page; the exhibit page keeps the museum's global frame.
+**Idea.** Give each room a page with its own visual identity — surface, accent and a small motif drawn from the objects inside it — instead of every room wearing the same chalk-and-oxblood skin. The room page becomes the missing middle of the visit: a QR card opens one object, but nothing currently explains why these six objects sit together. A themed room page is that threshold — what the room is about, what is in it, a 360° preview once Week 3 lands, and a way into each exhibit. The theme stays on the room page; the exhibit page keeps the museum's global frame.
 
 **Not to be confused with categories.** A room here is a *place* — a floor, a 360° view, a wall a QR card hangs on — not an object type. Browsing by type (clay, metal, textile, wood) stays on `/exhibits` as the existing tag filters; this proposal adds no category model.
 
 **Current state.**
 
-- `Room` has `id`, `slug`, `name`, `floor`, `panoramaUrl`, `createdAt`, `updatedAt`. Both seeded rooms (`material-worlds` / "Material Worlds", `everyday-objects` / "Everyday Objects") have `panoramaUrl: null`.
-- There is **no `/rooms` route yet**. `app/rooms/[slug]/page.tsx` is in the §4 route map but unbuilt. Room context appears only as a text label on an exhibit page and as `contentLocation` in its JSON-LD.
-- Colours are fixed once in `globals.css` (`--color-ink`, `--color-ochre`, `--color-sand`, `--color-paper`…). Nothing scopes a palette to a subtree.
-- Week 3's VR viewer will need a home; the room page is the natural one.
+- `Room` has `id`, `slug`, `name`, `floor`, `intro`, `panoramaUrl`, `createdAt`, `updatedAt`. Both seeded rooms (`material-worlds` / "Material Worlds", `everyday-objects` / "Everyday Objects") now have an intro and a Poly Haven panorama.
+- `/rooms` and `/rooms/[slug]` exist: an index of both rooms, and a detail page with the intro, the 360° viewer, markers, the room's objects and a credit line. Both wear the global chalk-and-oxblood frame.
+- Colours are fixed once in `globals.css` (`--color-ink`, `--color-oxblood`, `--color-chalk`, `--color-paper`…). Nothing scopes a palette to a subtree.
+- The VR viewer has a home. Theming is now about giving each room a *local* identity inside that frame, not about building the route.
 
 **Proposed changes**
 
@@ -530,7 +555,7 @@ what changed from the plan, and what the next week inherits.
 model Room {
   // … existing: id, slug, name, floor, panoramaUrl, exhibits, timestamps
 
-  themeKey    String  @default("sand") // key into the registry, not free-form CSS
+  themeKey    String  @default("chalk") // key into the registry, not free-form CSS
   accent      String? // #rrggbb override, validated in Zod
   surface     String? // #rrggbb override, validated in Zod
   motif       String? // pattern key: "scroll" | "kalamkari" | "trade" | null
@@ -554,7 +579,7 @@ All six are nullable or defaulted, so the seed and the existing rows keep workin
 **Implementation sketch**
 
 1. **Schema + seed.** Add the fields above; `themeKey: "pigment"` for Material Worlds, `"brass"` for Everyday Objects, plus a two-sentence `intro` each.
-2. **`src/lib/themes.ts`.** `ROOM_THEMES = { sand, pigment, brass, indigo }`, each `{ surface, accent, motif }`, exported `as const` with a `RoomThemeKey` union and a Zod enum for admin input. Hex overrides are validated with `/^#[0-9a-f]{6}$/i`; an unknown key falls back to `sand`.
+2. **`src/lib/themes.ts`.** `ROOM_THEMES = { chalk, pigment, brass, indigo }`, each `{ surface, accent, motif }`, exported `as const` with a `RoomThemeKey` union and a Zod enum for admin input. Hex overrides are validated with `/^#[0-9a-f]{6}$/i`; an unknown key falls back to `chalk`.
 3. **`src/components/room/RoomTheme.tsx`.** A server component that renders `<div style={{ "--room-surface": …, "--room-accent": … }}>` around its children. Scoped to the subtree, never `:root`, so the site header and footer do not change colour.
 4. **`/rooms/page.tsx`.** `revalidate = 60`; one query for rooms with `_count.exhibits` (published only); a card per room using its accent.
 5. **`/rooms/[slug]/page.tsx`.** `generateStaticParams` + `revalidate = 60` + `generateMetadata`; `notFound()` for unknown or empty rooms. Layout: themed header band (name, floor, intro), panorama slot, exhibit grid reusing `ExhibitCard`, a "Scan a card" CTA. The panorama slot renders a static poster until the Week 3 viewer is ready, then swaps without changing the route.

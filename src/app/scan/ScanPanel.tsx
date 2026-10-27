@@ -184,7 +184,7 @@ export default function ScanPanel({
           Camera scanner
         </h2>
 
-        <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-ink/10 bg-ink">
+        <div className="relative aspect-[4/3] overflow-hidden border border-ink/10 bg-ink">
           {/* The library sets playsInline/muted itself; the attributes keep SSR honest. */}
           <video
             ref={videoRef}
@@ -208,7 +208,7 @@ export default function ScanPanel({
                   <button
                     type="button"
                     onClick={startCamera}
-                    className="mt-4 rounded-full bg-paper px-4 py-2 text-sm font-medium text-ink"
+                    className="mt-4 bg-paper px-4 py-2 text-sm font-medium text-ink"
                   >
                     {status === "error" ? "Try the camera again" : "Start camera"}
                   </button>
@@ -240,7 +240,7 @@ export default function ScanPanel({
               type="button"
               onClick={toggleFlash}
               aria-pressed={flashOn}
-              className="rounded-full border border-ink/15 px-3 py-1 font-mono text-[11px] uppercase tracking-widest text-ink-soft hover:border-ink/40"
+              className="border border-ink/15 px-3 py-1 font-mono text-[11px] uppercase tracking-widest text-ink-soft hover:border-ink/40"
             >
               {flashOn ? "Torch off" : "Torch on"}
             </button>
@@ -248,13 +248,13 @@ export default function ScanPanel({
         </div>
 
         {notice?.source === "camera" ? (
-          <p role="alert" className="mt-3 rounded-lg bg-ochre/10 px-3 py-2 text-sm text-ochre">
+          <p role="alert" className="mt-3 bg-oxblood/10 px-3 py-2 text-sm text-oxblood">
             {notice.text}
           </p>
         ) : null}
       </section>
 
-      <section aria-labelledby="code-heading" className="rounded-xl border border-ink/10 bg-paper p-6">
+      <section aria-labelledby="code-heading" className="border border-ink/10 bg-paper p-6">
         <h2 id="code-heading" className="font-serif text-2xl tracking-tight">
           No card to hand?
         </h2>
@@ -286,11 +286,11 @@ export default function ScanPanel({
               title="Four to twelve letters or digits, e.g. BH02"
               maxLength={12}
               aria-describedby={notice?.source === "manual" ? "code-error" : undefined}
-              className="w-full rounded-lg border border-ink/15 bg-paper px-3 py-2 font-mono text-sm uppercase tracking-widest outline-none focus-visible:border-ochre"
+              className="w-full border border-ink/15 bg-paper px-3 py-2 font-mono text-sm uppercase tracking-widest outline-none focus-visible:border-oxblood"
             />
             <button
               type="submit"
-              className="shrink-0 rounded-full bg-ink px-4 py-2 text-sm font-medium text-paper"
+              className="shrink-0 bg-ink px-4 py-2 text-sm font-medium text-paper"
             >
               Open
             </button>
@@ -301,7 +301,7 @@ export default function ScanPanel({
           <p
             id="code-error"
             role="alert"
-            className="mt-3 rounded-lg bg-ochre/10 px-3 py-2 text-sm text-ochre"
+            className="mt-3 bg-oxblood/10 px-3 py-2 text-sm text-oxblood"
           >
             {notice.text}
           </p>
@@ -316,7 +316,7 @@ export default function ScanPanel({
               <li key={exhibit.code}>
                 {/* Plain <a>: /x/[code] is a redirecting route handler, not a page. */}
                 <a href={`/x/${exhibit.code}`} className="group flex items-baseline gap-3 text-sm">
-                  <span className="font-mono text-xs tracking-widest text-ochre group-hover:underline">
+                  <span className="font-mono text-xs tracking-widest text-oxblood group-hover:underline">
                     {exhibit.code}
                   </span>
                   <span className="text-ink-soft group-hover:text-ink">{exhibit.title}</span>

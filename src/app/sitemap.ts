@@ -7,11 +7,17 @@ import { absoluteUrl } from "@/lib/site";
 export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const exhibits = await prisma.exhibit.findMany({
-    where: { status: "PUBLISHED" },
-    select: { slug: true, updatedAt: true },
-    orderBy: { code: "asc" },
-  });
+  const [exhibits, rooms] = await Promise.all([
+    prisma.exhibit.findMany({
+      where: { status: "PUBLISHED" },
+      select: { slug: true, updatedAt: true },
+      orderBy: { code: "asc" },
+    }),
+    prisma.room.findMany({
+      select: { slug: true, updatedAt: true },
+      orderBy: { name: "asc" },
+    }),
+  ]);
 
   return [
     {
@@ -27,6 +33,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     },
     {
+      url: absoluteUrl("/rooms"),
+      lastModified: rooms[0]?.updatedAt ?? new Date(),
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
       url: absoluteUrl("/scan"),
       lastModified: new Date(),
       changeFrequency: "monthly",
@@ -37,6 +49,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: exhibit.updatedAt,
       changeFrequency: "monthly" as const,
       priority: 0.8,
+    })),
+    ...rooms.map((room) => ({
+      url: absoluteUrl(`/rooms/${room.slug}`),
+      lastModified: room.updatedAt,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
     })),
   ];
 }

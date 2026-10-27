@@ -16,7 +16,7 @@ export default function ArSpikePage() {
         <div className="flex items-baseline gap-4">
           <Link
             href="/spike/panorama"
-            className="font-mono text-[11px] uppercase tracking-widest text-ochre hover:underline"
+            className="font-mono text-[11px] uppercase tracking-widest text-oxblood hover:underline"
           >
             Panorama spike →
           </Link>
@@ -31,7 +31,7 @@ export default function ArSpikePage() {
         vase from the Khronos glTF sample set — a stand-in, not exhibit content.
       </p>
 
-      <div className="mt-5 max-w-2xl rounded-xl border border-ink/10 bg-sand-deep/50 p-5 text-sm leading-relaxed">
+      <div className="mt-5 max-w-2xl rounded-xl border border-ink/10 bg-chalk-deep/50 p-5 text-sm leading-relaxed">
         <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-ink-soft">Result</p>
         <p className="mt-2">
           Placement works over <strong>HTTPS</strong>, where model-viewer uses <strong>WebXR</strong>{" "}

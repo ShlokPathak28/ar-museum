@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
 import type { HotspotData } from "@/types/exhibit";
@@ -27,6 +28,8 @@ type ModelViewerProps = {
   iosSrc?: string | null;
   /** Report loading/AR capability back to the parent. */
   onStatus?: (status: ViewerStatus) => void;
+  /** Still photograph shown behind the poster text until the GLB decodes. */
+  posterSrc?: string;
 };
 
 /**
@@ -48,6 +51,7 @@ export default function ModelViewer({
   onSelectHotspot,
   iosSrc,
   onStatus,
+  posterSrc,
 }: ModelViewerProps) {
   const ref = useRef<ModelViewerElement | null>(null);
   const [ready, setReady] = useState(false);
@@ -126,7 +130,7 @@ export default function ModelViewer({
     >
       <button
         slot="ar-button"
-        className="rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-paper"
+        className="bg-ink px-4 py-2 text-[13px] font-medium text-paper transition-colors hover:bg-oxblood"
       >
         Place in your room
       </button>
@@ -145,7 +149,7 @@ export default function ModelViewer({
             onClick={() => onSelectHotspot?.(active ? null : hotspot.id)}
             className={`flex h-7 w-7 items-center justify-center rounded-full border font-mono text-[11px] font-medium shadow-sm transition-colors ${
               active
-                ? "border-ochre bg-ochre text-paper"
+                ? "border-oxblood bg-oxblood text-paper"
                 : "border-paper/70 bg-ink/80 text-paper hover:bg-ink"
             }`}
           >
@@ -154,15 +158,26 @@ export default function ModelViewer({
         );
       })}
 
-      <div
-        slot="poster"
-        className="flex h-full w-full items-center justify-center px-6 text-center text-sm text-ink-soft"
-      >
-        {failed
-          ? "The 3D viewer could not load. Reload the page, and check the browser console if it happens again."
-          : ready
-            ? "Loading model…"
-            : "Preparing viewer…"}
+      <div slot="poster" className="relative h-full w-full overflow-hidden">
+        {posterSrc && !failed ? (
+          <Image
+            src={posterSrc}
+            alt=""
+            fill
+            sizes="(min-width: 1024px) 55vw, 100vw"
+            unoptimized
+            className="object-contain"
+          />
+        ) : null}
+        <div className="absolute inset-0 grid place-items-center px-6 text-center text-sm text-ink-soft">
+          <p className="bg-paper/90 px-3 py-1.5">
+            {failed
+              ? "The 3D viewer could not load. Reload the page, and check the browser console if it happens again."
+              : ready
+                ? "Loading model…"
+                : "Preparing viewer…"}
+          </p>
+        </div>
       </div>
     </model-viewer>
   );

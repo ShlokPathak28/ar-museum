@@ -110,7 +110,7 @@ export default function ArSpikePanel() {
           <br />
           {SOURCES[source].src}
         </p>
-        <div className="h-[55vh] overflow-hidden rounded-2xl border border-ink/10 bg-sand-deep">
+        <div className="h-[55vh] overflow-hidden rounded-2xl border border-ink/10 bg-chalk-deep">
           <ModelViewer
             key={source}
             src={SOURCES[source].src}
@@ -173,7 +173,7 @@ export default function ArSpikePanel() {
           </dl>
           <a
             href={sceneViewerHref}
-            className="mt-4 inline-block rounded-full bg-ochre px-4 py-2 text-sm font-medium text-paper"
+            className="mt-4 inline-block rounded-full bg-oxblood px-4 py-2 text-sm font-medium text-paper"
           >
             Open Scene Viewer directly
           </a>
@@ -183,7 +183,7 @@ export default function ArSpikePanel() {
             requires HTTPS and WebXR. Kept only to re-check the hand-off on other devices.
           </p>
           <p className="mt-4 border-t border-ink/10 pt-3 text-xs leading-relaxed text-ink-soft">
-            <a href="/dev-ca.crt" download className="font-medium text-ochre hover:underline">
+            <a href="/dev-ca.crt" download className="font-medium text-oxblood hover:underline">
               Download this machine&apos;s CA certificate
             </a>{" "}
             and install it under Settings → Security → Encryption &amp; credentials → Install a
@@ -195,7 +195,7 @@ export default function ArSpikePanel() {
               href="https://play.google.com/store/apps/details?id=com.google.ar.core"
               target="_blank"
               rel="noreferrer"
-              className="text-sm font-medium text-ochre hover:underline"
+              className="text-sm font-medium text-oxblood hover:underline"
             >
               Google Play Services for AR →
             </a>
@@ -203,7 +203,7 @@ export default function ArSpikePanel() {
               href="https://play.google.com/store/apps/details?id=com.google.android.googlequicksearchbox"
               target="_blank"
               rel="noreferrer"
-              className="text-sm font-medium text-ochre hover:underline"
+              className="text-sm font-medium text-oxblood hover:underline"
             >
               Google app (contains Scene Viewer) →
             </a>
