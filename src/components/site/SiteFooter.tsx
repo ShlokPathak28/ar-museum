@@ -25,9 +25,9 @@ export default function SiteFooter() {
               Visit
             </p>
             <p className="mt-3 text-sm leading-relaxed text-chalk/50">
-              Tuesday to Sunday
+              Tuesday to Sunday{" "}
               <br />
-              10.00–18.00
+              10.00–18.00{" "}
               <br />
               Closed Mondays
             </p>

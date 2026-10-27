@@ -74,7 +74,7 @@ export default async function HomePage() {
               </p>
 
               <h1 className="mt-7 font-serif text-[clamp(3.2rem,5.4vw,4.8rem)] leading-[0.92] tracking-[-0.04em]">
-                Nothing here is
+                Nothing here is{" "}
                 <br />
                 behind glass.
               </h1>
