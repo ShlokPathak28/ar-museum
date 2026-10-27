@@ -12,7 +12,7 @@ import type { HotspotData, MaterialMode } from "@/types/exhibit";
 const ReconstructionViewer = dynamic(() => import("@/components/three/ReconstructionViewer"), {
   ssr: false,
   loading: () => (
-    <div className="flex h-full items-center justify-center text-sm text-ink-soft">
+    <div className="flex h-full items-center justify-center text-sm text-chalk/55">
       Preparing the reconstruction…
     </div>
   ),
@@ -92,20 +92,30 @@ export default function ExhibitViewer({
         ) : null}
       </div>
 
-      <div className="mt-3 h-[55vh] min-h-[320px] overflow-hidden border border-ink/12 bg-chalk-deep">
-        {tab === "object" ? (
-          <ModelViewer
-            src={modelUrl}
-            alt={alt}
-            hotspots={hotspots}
-            selectedHotspot={selected}
-            onSelectHotspot={setSelected}
-            iosSrc={usdzUrl}
-            posterSrc={posterSrc}
-          />
-        ) : (
-          <ReconstructionViewer src={modelUrl} alt={alt} mode={material} />
-        )}
+      <div className="relative mt-3 h-[55vh] min-h-[360px] overflow-hidden border border-ink/15 bg-vault">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(58%_52%_at_50%_40%,rgba(240,214,164,0.22),transparent_72%)]"
+        />
+        <div className="relative h-full">
+          {tab === "object" ? (
+            <ModelViewer
+              src={modelUrl}
+              alt={alt}
+              hotspots={hotspots}
+              selectedHotspot={selected}
+              onSelectHotspot={setSelected}
+              iosSrc={usdzUrl}
+              posterSrc={posterSrc}
+            />
+          ) : (
+            <ReconstructionViewer src={modelUrl} alt={alt} mode={material} />
+          )}
+        </div>
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 shadow-[inset_0_0_120px_28px_rgba(0,0,0,0.55)]"
+        />
       </div>
 
       {tab === "reconstruction" ? (

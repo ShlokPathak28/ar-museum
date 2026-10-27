@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import ExhibitCard from "@/components/exhibit/ExhibitCard";
 import GalleryDoors from "@/components/site/GalleryDoors";
+import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
 import { accentForTags } from "@/lib/accent";
 import { prisma } from "@/lib/db";
@@ -13,20 +14,22 @@ export const revalidate = 60;
 const MODES = [
   {
     label: "3D",
-    title: "Turn it over",
-    body: "Every modelled object loads as a real-time scan, with hotspots that name the parts you cannot read from the label.",
+    verb: "Turn it over",
+    body: "A real-time scan you can rotate, with numbered notes on the parts a wall label cannot point to.",
   },
   {
     label: "AR",
-    title: "Set it on the table",
+    verb: "Set it down",
     body: "One tap places the object in your room at true scale, through the phone's camera.",
   },
   {
     label: "VR",
-    title: "Step into the room",
-    body: "Both rooms are photographed in 360°. Drag to look around, or move your phone and the room moves with you.",
+    verb: "Step inside",
+    body: "Both rooms are photographed in 360°. Drag to look, or move the phone and the room moves with you.",
   },
 ];
+
+const pad = (value: number) => String(value).padStart(2, "0");
 
 export default async function HomePage() {
   const [exhibits, rooms] = await Promise.all([
@@ -53,129 +56,179 @@ export default async function HomePage() {
       <GalleryDoors />
 
       <main>
-        <section className="relative overflow-hidden border-b border-ink/10">
+        {/* The hall. One object under one light, the rest of the room in shadow. */}
+        <section className="grain relative isolate overflow-hidden bg-vault text-chalk">
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(65%_55%_at_74%_-8%,#fffdf7_0%,rgba(255,253,247,0)_72%)]"
+            className="pointer-events-none absolute -right-[18%] -top-[30%] h-[90%] w-[78%] rounded-full bg-[radial-gradient(closest-side,rgba(240,214,164,0.2),transparent)] blur-2xl"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-vault to-transparent"
           />
 
-          <div className="relative mx-auto grid w-full max-w-6xl gap-14 px-5 pb-20 pt-14 sm:px-8 lg:grid-cols-[1.02fr_0.98fr] lg:items-center lg:gap-10 lg:pb-24 lg:pt-20">
+          <div className="relative z-[2] mx-auto grid w-full max-w-6xl gap-16 px-5 pb-20 pt-16 sm:px-8 lg:grid-cols-[1.06fr_0.94fr] lg:items-center lg:gap-14 lg:pb-28 lg:pt-24">
             <div>
-              <p className="font-mono text-[11px] tracking-[0.18em] text-ink-soft">
-                Gallery 01, ground floor
+              <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-brass-light">
+                Gallery 01 · Ground floor · Now on view
               </p>
 
-              <h1 className="mt-6 text-balance font-serif text-[clamp(2.9rem,7vw,4.9rem)] leading-[0.97] tracking-[-0.02em]">
-                The exhibit explains itself.
+              <h1 className="mt-7 font-serif text-[clamp(3.2rem,5.4vw,4.8rem)] leading-[0.92] tracking-[-0.04em]">
+                Nothing here is
+                <br />
+                behind glass.
               </h1>
 
-              <p className="mt-7 max-w-lg text-[17px] leading-relaxed text-ink-soft">
-                Point your camera at the code beside an object. Its page opens with the history,
-                the material, a model you can turn over, and the room it came from.
+              <p className="mt-8 max-w-md text-[16px] leading-[1.75] text-chalk/60">
+                Dharohar is a small museum of material culture. Point your phone at a marker and
+                the object opens: its history, the material it is made from, a model you can turn
+                over, and the room it lives in.
               </p>
 
-              <div className="mt-9 flex flex-wrap items-center gap-x-7 gap-y-4">
+              <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-5">
                 <Link
                   href="/exhibits"
-                  className="bg-ink px-5 py-3 text-[13px] text-chalk transition-colors hover:bg-oxblood"
+                  className="bg-brass-light px-6 py-3.5 text-[13px] font-medium text-vault transition-colors hover:bg-chalk"
                 >
                   Enter the collection
                 </Link>
                 <Link
                   href="/scan"
-                  className="group inline-flex items-center gap-2 text-[13px] text-ink-soft transition-colors hover:text-ink"
+                  className="group inline-flex items-center gap-3 text-[13px] text-chalk/60 transition-colors hover:text-chalk"
                 >
-                  Scan a code
+                  Scan a marker
                   <span
                     aria-hidden
-                    className="h-px w-6 bg-ink/30 transition-[width] duration-300 group-hover:w-10 group-hover:bg-oxblood"
+                    className="h-px w-7 bg-chalk/30 transition-[width] duration-300 group-hover:w-12 group-hover:bg-brass-light"
                   />
                 </Link>
               </div>
 
-              <dl className="mt-12 grid max-w-sm grid-cols-3 gap-6 border-t border-ink/15 pt-5">
+              <dl className="mt-14 grid max-w-md grid-cols-3 gap-6 border-t border-chalk/15 pt-6">
                 <div>
-                  <dt className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft">
+                  <dt className="font-mono text-[9px] uppercase tracking-[0.22em] text-chalk/40">
                     Objects
                   </dt>
-                  <dd className="mt-1 font-serif text-2xl">{exhibits.length}</dd>
+                  <dd className="mt-2 font-serif text-3xl leading-none">
+                    {pad(exhibits.length)}
+                  </dd>
                 </div>
                 <div>
-                  <dt className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft">
+                  <dt className="font-mono text-[9px] uppercase tracking-[0.22em] text-chalk/40">
                     Rooms
                   </dt>
-                  <dd className="mt-1 font-serif text-2xl">{rooms.length}</dd>
+                  <dd className="mt-2 font-serif text-3xl leading-none">{pad(rooms.length)}</dd>
                 </div>
                 <div>
-                  <dt className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft">
+                  <dt className="font-mono text-[9px] uppercase tracking-[0.22em] text-chalk/40">
                     Models
                   </dt>
-                  <dd className="mt-1 font-serif text-2xl">{modelCount}</dd>
+                  <dd className="mt-2 font-serif text-3xl leading-none">{pad(modelCount)}</dd>
                 </div>
               </dl>
             </div>
 
             {lead ? (
-              <figure>
-                <Link href={`/exhibits/${lead.slug}`} className="group block">
-                  <div className="border border-ink/15 bg-paper p-3 shadow-[0_24px_60px_-40px_rgba(22,20,15,0.65)]">
-                    <div className="relative overflow-hidden bg-chalk-deep">
-                      <Image
-                        src={lead.heroImage}
-                        alt={lead.title}
-                        width={1200}
-                        height={900}
-                        unoptimized
-                        priority
-                        className="aspect-[4/3] w-full object-cover transition-transform duration-[900ms] group-hover:scale-[1.025]"
-                      />
-                    </div>
-                  </div>
+              <figure className="relative mx-auto w-full max-w-[27rem] lg:max-w-none">
+                <div className="relative aspect-[4/5] overflow-hidden">
+                  <div
+                    aria-hidden
+                    className="absolute inset-0 bg-[radial-gradient(50%_45%_at_50%_42%,rgba(240,214,164,0.3),rgba(240,214,164,0.05)_56%,transparent_76%)]"
+                  />
+                  <Image
+                    src={lead.heroImage}
+                    alt={lead.title}
+                    fill
+                    sizes="(min-width: 1024px) 44vw, 90vw"
+                    unoptimized
+                    priority
+                    className="object-cover opacity-90 saturate-[0.9]"
+                    style={{
+                      maskImage:
+                        "radial-gradient(72% 68% at 50% 46%, #000 36%, transparent 76%)",
+                      WebkitMaskImage:
+                        "radial-gradient(72% 68% at 50% 46%, #000 36%, transparent 76%)",
+                    }}
+                  />
+                  <div
+                    aria-hidden
+                    className="absolute bottom-[15%] left-1/2 h-px w-[62%] -translate-x-1/2 bg-gradient-to-r from-transparent via-brass-light/50 to-transparent"
+                  />
+                </div>
 
-                  <figcaption className="mx-auto -mt-6 w-[88%] border border-ink/15 bg-paper px-5 py-4 shadow-[0_14px_36px_-30px_rgba(22,20,15,0.7)]">
-                    <div className="flex items-baseline justify-between gap-4">
-                      <p className="font-serif text-lg leading-tight tracking-tight">
-                        {lead.title}
-                      </p>
-                      <p className="font-mono text-[10px] tracking-[0.16em] text-ink-soft">
-                        {lead.code}
-                      </p>
-                    </div>
-                    <p className="mt-1 text-[13px] text-ink-soft">
-                      {lead.era} · {lead.room.name}
+                <figcaption className="relative -mt-10 ml-0 w-[88%] border-t-2 border-brass bg-chalk p-5 text-ink shadow-[0_36px_90px_-30px_rgba(0,0,0,0.9)] sm:p-6">
+                  <div className="flex items-baseline justify-between gap-4 border-b border-ink/15 pb-3">
+                    <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-oxblood">
+                      {lead.code}
                     </p>
-                  </figcaption>
-                </Link>
+                    <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-ink-soft">
+                      {lead.era}
+                    </p>
+                  </div>
+                  <p className="mt-3 font-serif text-2xl leading-tight tracking-tight">
+                    {lead.title}
+                  </p>
+                  <p className="mt-1.5 text-[13px] text-ink-soft">
+                    {lead.room.name} · {lead.room.floor}
+                  </p>
+                </figcaption>
               </figure>
             ) : null}
           </div>
         </section>
 
-        <section className="mx-auto w-full max-w-6xl px-5 py-16 sm:px-8">
-          <div className="grid gap-10 border-t border-ink/10 pt-10 sm:grid-cols-3 sm:gap-0">
-            {MODES.map((mode, index) => (
-              <article
-                key={mode.label}
-                className={`sm:px-8 ${index === 0 ? "sm:pl-0" : ""} ${
-                  index > 0 ? "sm:border-l sm:border-ink/10" : ""
-                }`}
-              >
-                <p className="font-mono text-[11px] tracking-[0.2em] text-oxblood">{mode.label}</p>
-                <h2 className="mt-3 font-serif text-2xl tracking-tight">{mode.title}</h2>
-                <p className="mt-3 max-w-xs text-sm leading-relaxed text-ink-soft">{mode.body}</p>
-              </article>
-            ))}
+        {/* The reading room. Cool plaster after the dark hall. */}
+        <section className="mx-auto w-full max-w-6xl px-5 py-20 sm:px-8">
+          <div className="grid gap-12 lg:grid-cols-[0.72fr_1.28fr] lg:gap-16">
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-oxblood">
+                The guide
+              </p>
+              <h2 className="mt-4 text-balance font-serif text-[clamp(2rem,3.6vw,3rem)] leading-[1.02] tracking-tight">
+                Three ways to look at one object.
+              </h2>
+              <p className="mt-5 max-w-xs text-sm leading-relaxed text-ink-soft">
+                The label is the beginning, not the exhibit. Each page opens the object in the way
+                the screen in your hand allows.
+              </p>
+            </div>
+
+            <div className="grid gap-10 sm:grid-cols-3 sm:gap-0">
+              {MODES.map((mode, index) => (
+                <article
+                  key={mode.label}
+                  className={`${index > 0 ? "sm:border-l sm:border-ink/10 sm:pl-8" : ""} ${
+                    index < MODES.length - 1 ? "sm:pr-8" : ""
+                  }`}
+                >
+                  <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-soft">
+                    {mode.label}
+                  </p>
+                  <h3 className="mt-4 font-serif text-[2rem] leading-[0.98] tracking-tight">
+                    {mode.verb}
+                  </h3>
+                  <p className="mt-4 max-w-[15rem] text-sm leading-relaxed text-ink-soft">
+                    {mode.body}
+                  </p>
+                </article>
+              ))}
+            </div>
           </div>
         </section>
 
         <section className="mx-auto w-full max-w-6xl px-5 pb-20 sm:px-8">
-          <div className="flex items-end justify-between gap-4 border-b border-ink/10 pb-4">
-            <h2 className="font-serif text-3xl tracking-tight">From the collection</h2>
+          <div className="flex flex-wrap items-end justify-between gap-4 border-b border-ink/15 pb-5">
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-oxblood">
+                On view
+              </p>
+              <h2 className="mt-2 font-serif text-4xl tracking-tight">From the collection</h2>
+            </div>
             <Link
               href="/exhibits"
               className="whitespace-nowrap text-[13px] text-ink-soft transition-colors hover:text-ink"
             >
-              All {exhibits.length} objects →
+              All {exhibits.length} objects
             </Link>
           </div>
 
@@ -199,63 +252,71 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section className="border-y border-ink/10 bg-chalk-deep/40">
-          <div className="mx-auto w-full max-w-6xl px-5 py-16 sm:px-8">
-            <div className="flex items-end justify-between gap-4">
-              <h2 className="font-serif text-3xl tracking-tight">Walk the rooms</h2>
+        {/* The building at night. The panoramas are the only bright things. */}
+        <section className="grain relative isolate overflow-hidden bg-vault text-chalk">
+          <div className="relative z-[2] mx-auto w-full max-w-6xl px-5 py-20 sm:px-8">
+            <div className="flex flex-wrap items-end justify-between gap-4 border-b border-chalk/15 pb-5">
+              <div>
+                <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass-light">
+                  The building
+                </p>
+                <h2 className="mt-2 font-serif text-4xl tracking-tight">Walk the rooms</h2>
+              </div>
               <Link
                 href="/rooms"
-                className="whitespace-nowrap text-[13px] text-ink-soft transition-colors hover:text-ink"
+                className="whitespace-nowrap text-[13px] text-chalk/55 transition-colors hover:text-chalk"
               >
-                Both rooms →
+                Both rooms
               </Link>
             </div>
 
-            <ul className="mt-8 grid gap-7 sm:grid-cols-2">
+            <ul className="mt-10 grid gap-8 sm:grid-cols-2">
               {rooms.map((room) => (
                 <li key={room.id}>
                   <Link href={`/rooms/${room.slug}`} className="group block">
-                    <div className="border border-ink/12 bg-paper p-2">
-                      <div className="relative aspect-[2/1] overflow-hidden bg-chalk-deep">
-                        {room.panoramaUrl ? (
-                          <Image
-                            src={room.panoramaUrl}
-                            alt={`Panorama of ${room.name}`}
-                            fill
-                            sizes="(min-width: 640px) 45vw, 100vw"
-                            unoptimized
-                            className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
-                          />
-                        ) : null}
-                        <span className="absolute left-2 top-2 bg-paper/95 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.16em] text-ink-soft">
-                          360°
+                    <div className="relative aspect-[16/10] overflow-hidden border border-chalk/10">
+                      {room.panoramaUrl ? (
+                        <Image
+                          src={room.panoramaUrl}
+                          alt={`Panorama of ${room.name}`}
+                          fill
+                          sizes="(min-width: 640px) 45vw, 100vw"
+                          unoptimized
+                          className="object-cover opacity-80 transition duration-700 group-hover:scale-[1.03] group-hover:opacity-100"
+                        />
+                      ) : null}
+                      <div
+                        aria-hidden
+                        className="absolute inset-0 bg-gradient-to-t from-vault via-vault/10 to-transparent"
+                      />
+                      <span className="absolute right-4 top-4 border border-chalk/30 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.2em] text-chalk/70">
+                        360°
+                      </span>
+                      <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-5">
+                        <div>
+                          <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-brass-light">
+                            {room.floor}
+                          </p>
+                          <h3 className="mt-1 font-serif text-3xl tracking-tight">
+                            {room.name}
+                          </h3>
+                        </div>
+                        <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-chalk/45">
+                          {room._count.exhibits} objects
                         </span>
                       </div>
                     </div>
-
-                    <div className="mt-3 flex items-baseline justify-between gap-3">
-                      <h3 className="font-serif text-xl tracking-tight transition-colors group-hover:text-oxblood">
-                        {room.name}
-                      </h3>
-                      <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft">
-                        {room._count.exhibits} objects
-                      </span>
-                    </div>
-                    <p className="mt-1 text-[13px] text-ink-soft">{room.floor}</p>
+                    <p className="mt-3 max-w-md text-[13px] leading-relaxed text-chalk/50">
+                      {room.intro}
+                    </p>
                   </Link>
                 </li>
               ))}
             </ul>
           </div>
         </section>
-
-        <footer className="mx-auto flex w-full max-w-6xl flex-col gap-2 px-5 py-10 sm:flex-row sm:items-center sm:justify-between sm:px-8">
-          <p className="font-serif text-sm">Dharohar · Museum of Material Culture</p>
-          <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft">
-            Next.js 16 · Prisma · SQLite · WebXR
-          </p>
-        </footer>
       </main>
+      <SiteFooter />
     </>
   );
 }

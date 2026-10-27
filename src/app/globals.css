@@ -1,14 +1,15 @@
 @import "tailwindcss";
 
 /*
- * Chalk gallery.
+ * Dharohar, after hours.
  *
- * The walls are cool plaster, not cream: a museum lit by daylight, with ink for
- * type and oxblood for anything that needs to be found. Material accents (clay,
- * brass, indigo) are used only on object cards, so the page changes temperature
- * when you point at a different object.
+ * Two temperatures, one building. The thresholds and the objects sit in a dark
+ * hall lit by a warm spot (vault, brass, glow); the reading rooms are cool
+ * chalk plaster with ink type. Oxblood is the one colour that has to be found.
  */
 @theme {
+  --color-vault: #0b0906;
+  --color-vault-soft: #17110b;
   --color-chalk: #f1f0ea;
   --color-chalk-deep: #e7e5db;
   --color-paper: #fbfaf6;
@@ -17,6 +18,9 @@
   --color-oxblood: #7a1f1a;
   --color-oxblood-soft: #9b3428;
   --color-brass: #9a7b33;
+  --color-brass-light: #c8a35d;
+  --color-brass-pale: #e2c894;
+  --color-glow: #f0d6a4;
   --color-clay: #a8532f;
   --color-indigo: #35506b;
   --color-rust: #a03a22;
@@ -49,6 +53,25 @@
 }
 
 /*
+ * Film grain. Only on the dark sections: a flat black is a screen, a faint
+ * tooth makes it read as a wall.
+ */
+.grain {
+  position: relative;
+}
+
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.045;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}
+
+/*
  * Collection grid: pointing at one object quiets the rest of the wall. Only on
  * devices that actually hover, so a phone never dims a card it just tapped.
  */
@@ -58,15 +81,19 @@
   }
 
   .exhibit-grid:hover > *:not(:hover) {
-    opacity: 0.45;
+    opacity: 0.4;
   }
 }
 
 /*
- * The entrance. Two plaster panels with a hairline seam part on the home page.
- * The room behind is already painted, so the doors are decoration, not a gate:
- * they are aria-hidden, they disappear entirely under reduced motion, and a
- * click or keypress opens them immediately.
+ * The entrance. A dark vestibule with two monumental doors. The seam breathes,
+ * then the doors part and the hall behind is already lit.
+ *
+ * It is decoration, not a gate: the page behind is rendered, the panels are
+ * aria-hidden, a click or Escape/Enter/Space opens them immediately, and
+ * `prefers-reduced-motion` removes them from the layout entirely. The
+ * <noscript> rule is the one case CSS cannot cover: without JavaScript nothing
+ * would ever set data-open, so the doors must not exist at all.
  */
 .gallery-doors {
   position: fixed;
@@ -74,43 +101,63 @@
   z-index: 100;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  background: var(--color-chalk);
+  background: var(--color-vault);
   transition:
-    visibility 0s linear 1200ms,
-    background-color 1200ms ease;
+    visibility 0s linear 1700ms,
+    opacity 600ms ease 1050ms;
 }
 
 .gallery-doors[data-open="true"] {
   visibility: hidden;
+  opacity: 0;
   pointer-events: none;
 }
 
 .gallery-door {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(to right, #f4f3ed 0%, #eeece4 100%);
-  transition: transform 1150ms cubic-bezier(0.76, 0, 0.24, 1);
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.5) 0px,
+      rgba(0, 0, 0, 0.5) 1px,
+      rgba(255, 255, 255, 0.028) 2px,
+      rgba(255, 255, 255, 0.028) 3px,
+      transparent 4px,
+      transparent 38px
+    ),
+    linear-gradient(180deg, #241c13 0%, #17110b 55%, #0a0705 100%);
+  box-shadow: inset 0 0 170px 24px rgba(0, 0, 0, 0.88);
+  transition: transform 1600ms cubic-bezier(0.7, 0, 0.2, 1);
   will-change: transform;
 }
 
-.gallery-door-right {
-  background: linear-gradient(to left, #f4f3ed 0%, #eeece4 100%);
+.gallery-door-left {
+  border-right: 1px solid rgba(226, 200, 148, 0.22);
 }
 
 .gallery-door::before {
   content: "";
   position: absolute;
-  inset: 22px;
-  border: 1px solid color-mix(in srgb, var(--color-ink) 12%, transparent);
+  inset: 28px;
+  border: 1px solid rgba(200, 163, 93, 0.22);
+  box-shadow:
+    inset 0 0 0 9px rgba(0, 0, 0, 0.26),
+    inset 0 0 70px rgba(0, 0, 0, 0.55);
 }
 
 .gallery-door::after {
   content: "";
   position: absolute;
-  top: 0;
-  bottom: 0;
+  top: 7%;
+  bottom: 7%;
   width: 1px;
-  background: color-mix(in srgb, var(--color-oxblood) 40%, transparent);
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(226, 200, 148, 0.4),
+    transparent
+  );
 }
 
 .gallery-door-left::after {
@@ -119,6 +166,79 @@
 
 .gallery-door-right::after {
   left: 0;
+}
+
+/* The light behind the seam: it is the only thing that moves before the doors do. */
+.gallery-light {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      46% 62% at 50% 48%,
+      rgba(240, 214, 164, 0.2),
+      transparent 70%
+    ),
+    linear-gradient(
+      90deg,
+      transparent 49.6%,
+      rgba(240, 214, 164, 0.55) 50%,
+      transparent 50.4%
+    );
+  animation: seam-breathe 4.5s ease-in-out infinite;
+  transition: opacity 500ms ease;
+}
+
+@keyframes seam-breathe {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.95;
+  }
+}
+
+/* A bloom of hall light as the doors open. */
+.gallery-flood {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    58% 78% at 50% 50%,
+    rgba(255, 233, 191, 0.6),
+    rgba(240, 214, 164, 0.16) 46%,
+    transparent 76%
+  );
+  transition: opacity 550ms ease;
+}
+
+.gallery-doors[data-open="true"] .gallery-flood {
+  opacity: 1;
+}
+
+.gallery-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: clamp(1.75rem, 4.5vw, 3.75rem) 1.5rem;
+  text-align: center;
+  pointer-events: none;
+  transition:
+    opacity 350ms ease,
+    transform 900ms cubic-bezier(0.7, 0, 0.2, 1);
+}
+
+.gallery-doors[data-open="true"] .gallery-veil {
+  opacity: 0;
+  transform: translateY(-10px);
 }
 
 .gallery-doors[data-open="true"] .gallery-door-left {
@@ -133,10 +253,23 @@
   .gallery-doors {
     display: none;
   }
+
+  .gallery-light {
+    animation: none;
+  }
 }
 
 @media print {
-  @page { size: A6; margin: 0; }
-  .markers-page { max-width: none; padding: 0; }
-  .markers-page article { break-inside: avoid; page-break-inside: avoid; }
+  @page {
+    size: A6;
+    margin: 0;
+  }
+  .markers-page {
+    max-width: none;
+    padding: 0;
+  }
+  .markers-page article {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
 }

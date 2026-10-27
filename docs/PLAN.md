@@ -519,6 +519,20 @@ what changed from the plan, and what the next week inherits.
 - **Verified:** `tsc` and `eslint` clean; Firefox headless screenshots at 1440 px and 390 px for home (with and without doors), collection, rooms, room, exhibit, scan and login; room smoke test still 21/21.
 - **Not verified:** the door transition and card dimming in a real interactive browser (headless captures the pre-animation state); real-device rendering of the new pages.
 
+**After-hours redesign (27 Oct)** — closed
+
+- **Why:** the chalk redesign was coherent but flat — every page held the same daylight and the same frame, so the entrance, the hall and the reading rooms ran together. Second visual pass: two temperatures in one building.
+- **Palette:** a dark `vault` hall (`#0b0906`) with brass light (`brass-light #c8a35d`, `brass-pale #e2c894`, `glow #f0d6a4`) and a `.grain` film-grain overlay; the reading rooms keep chalk, ink and oxblood. The rule is written at the top of `globals.css` so the next page knows which temperature it belongs to.
+- **New furniture:** `PageMasthead` (dark title wall — eyebrow, exhibition-scale title, lede and an optional aside) and `SiteFooter` (closing threshold — visit hours, links, build note). Both are server components reused across the public pages.
+- **Frame:** `SiteHeader` is dark site-wide with a brass hover rule; `AuthMenu` and `SignOutButton` now use opacity rather than ink colours, so one set of styles survives both temperatures. Header and footer are `print:hidden`.
+- **Home:** dark hero ("Nothing here is behind glass.") with the lead object under a spotlight and a chalk wall label, a reading-room guide band (3D / AR / VR), the collection strip, and 360° room cards on the dark wall.
+- **Entrance:** the doors are now a dark vestibule — monumental panelled doors, a seam of light that breathes, a light bloom as they part. Auto-open at 1400 ms; click, Escape, Enter or Space still skips; `aria-hidden`, reduced-motion and noscript behaviour unchanged. `onTransitionEnd` now waits for `transform`, not whichever property finishes first.
+- **Pages converted:** collection, room detail, exhibit, scan, passport, sign in, create account and marker cards all take the masthead, and every public page ends in `SiteFooter`. The exhibit page moved its room, code, title and era into the masthead, leaving the viewer and body as content; the room page dropped its duplicate in-page footer.
+- **Viewers:** the 3D viewer and the 360° stage sit in vault panels with an inset vignette; the AR button and hotspots are brass instead of ink/oxblood.
+- **Markers:** still a printable A6 page — header, masthead and footer are hidden under print, and a print-only "Marker cards" heading replaces the screen title.
+- **Verified:** `tsc` and `eslint` clean; dev server restarted over HTTPS and every public route returns 200 and serves both masthead and footer — `/`, `/exhibits`, an exhibit, `/rooms`, both room pages, `/scan`, `/login`, `/register`, `/markers`. `/passport` still 307s to sign-in when signed out; an unknown exhibit is 404.
+- **Not verified:** the door transition and grain in a real interactive browser (headless captures the pre-animation state); the print preview of the marker cards; the real-device AR/VR pass — still the Week 3 gap.
+
 ### Week 3–4 — planned
 
 #### Stretch — themed room pages

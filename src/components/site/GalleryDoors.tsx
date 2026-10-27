@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 /**
- * The entrance on the home page: two plaster panels part to reveal the room.
+ * The entrance on the home page: a dark vestibule with two monumental doors.
  *
  * It is decoration, not a gate — the page behind is already rendered, the panels
  * are aria-hidden, a click or any of Escape/Enter/Space opens them immediately,
@@ -16,7 +16,7 @@ export default function GalleryDoors() {
   const [gone, setGone] = useState(false);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setOpen(true), 700);
+    const timer = window.setTimeout(() => setOpen(true), 1400);
 
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape" || event.key === "Enter" || event.key === " ") {
@@ -42,26 +42,42 @@ export default function GalleryDoors() {
     >
       <noscript dangerouslySetInnerHTML={{ __html: "<style>.gallery-doors{display:none}</style>" }} />
 
-      <div className="gallery-door gallery-door-left" onTransitionEnd={() => setGone(true)}>
-        <div className="absolute inset-y-0 right-7 flex flex-col items-end justify-center gap-3 sm:right-14">
-          <span className="font-serif text-3xl leading-none tracking-tight sm:text-4xl">
-            Dharohar
-          </span>
-          <span className="h-px w-14 bg-oxblood/50" />
-          <span className="max-w-[9rem] text-right text-[10px] uppercase leading-relaxed tracking-[0.18em] text-ink-soft sm:text-[11px]">
-            Museum of Material Culture
-          </span>
-        </div>
-      </div>
+      <div
+        className="gallery-door gallery-door-left"
+        onTransitionEnd={(event) => {
+          if (event.propertyName === "transform") setGone(true);
+        }}
+      />
+      <div className="gallery-door gallery-door-right" />
 
-      <div className="gallery-door gallery-door-right">
-        <div className="absolute inset-y-0 left-7 flex flex-col items-start justify-center gap-1.5 sm:left-14">
-          <span className="text-[10px] uppercase tracking-[0.2em] text-ink-soft sm:text-[11px]">
+      <div className="gallery-light" />
+      <div className="gallery-flood" />
+
+      <div className="gallery-veil">
+        <p className="font-mono text-[9px] uppercase tracking-[0.34em] text-chalk/40 sm:text-[10px]">
+          Museum of Material Culture
+        </p>
+
+        <div className="flex flex-col items-center">
+          <p
+            className="font-serif text-[clamp(3.4rem,9vw,7.5rem)] leading-none tracking-[-0.04em] text-brass-pale"
+            style={{ textShadow: "0 0 70px rgba(240,214,164,0.28)" }}
+          >
+            Dharohar
+          </p>
+          <span aria-hidden className="mt-7 h-px w-16 bg-brass-light/50" />
+          <p className="mt-6 max-w-[19rem] text-[12px] leading-relaxed text-chalk/45">
+            A small museum of the things people made, and the rooms they made them in.
+          </p>
+        </div>
+
+        <div className="flex flex-col items-center gap-4">
+          <span className="border border-brass-light/45 px-8 py-3 font-mono text-[10px] uppercase tracking-[0.3em] text-brass-light">
             Enter
           </span>
-          <span className="font-serif text-lg italic text-ink-soft sm:text-xl">
-            the collection
-          </span>
+          <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-chalk/30">
+            Click anywhere · or press Enter
+          </p>
         </div>
       </div>
     </div>

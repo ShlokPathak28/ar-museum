@@ -4,6 +4,8 @@ import { Suspense } from "react";
 
 import ExhibitBrowser, { type BrowseExhibit } from "@/components/exhibit/ExhibitBrowser";
 import ExhibitCard from "@/components/exhibit/ExhibitCard";
+import PageMasthead from "@/components/site/PageMasthead";
+import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
 import { accentForTags } from "@/lib/accent";
 import { prisma } from "@/lib/db";
@@ -50,55 +52,50 @@ export default async function ExhibitsPage() {
   }));
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-5 pb-24 sm:px-8">
+    <>
       <SiteHeader />
-
-      <section className="border-t border-ink/10 pt-10">
-        <div className="flex flex-wrap items-end justify-between gap-6">
-          <div>
-            <p className="font-mono text-[11px] tracking-[0.18em] text-ink-soft">
-              {exhibits.length} objects · two rooms
-            </p>
-            <h1 className="mt-4 font-serif text-4xl tracking-tight sm:text-5xl">The collection</h1>
-          </div>
+      <PageMasthead
+        eyebrow={`${exhibits.length} objects · two rooms`}
+        title="The collection"
+        lede="Each entry opens with its history, the material it is made from, and, where a model exists, an object you can turn over."
+        aside={
           <Link
             href="/markers"
-            className="text-[13px] text-ink-soft transition-colors hover:text-ink"
+            className="text-chalk/60 underline-offset-4 transition-colors hover:text-chalk hover:underline"
           >
-            Printable marker cards →
+            Printable marker cards
           </Link>
-        </div>
-        <p className="mt-5 max-w-2xl leading-relaxed text-ink-soft">
-          Each entry opens with its history, the material it is made from, and, where a model
-          exists, an object you can turn over.
-        </p>
-      </section>
-
-      <Suspense
-        fallback={
-          <>
-            <div className="mt-8 border border-ink/12 bg-paper p-4 sm:p-5" aria-hidden>
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <div className="h-9 flex-1 animate-pulse bg-chalk-deep" />
-                <div className="h-9 w-36 animate-pulse bg-chalk-deep" />
-                <div className="h-9 w-32 animate-pulse bg-chalk-deep" />
-              </div>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <div className="h-7 w-20 animate-pulse bg-chalk-deep" />
-                <div className="h-7 w-28 animate-pulse bg-chalk-deep" />
-                <div className="h-7 w-24 animate-pulse bg-chalk-deep" />
-              </div>
-            </div>
-            <div className="exhibit-grid mt-10 grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
-              {browse.map((exhibit) => (
-                <ExhibitCard key={exhibit.slug} exhibit={exhibit} showSummary />
-              ))}
-            </div>
-          </>
         }
-      >
-        <ExhibitBrowser exhibits={browse} />
-      </Suspense>
-    </main>
+      />
+
+      <main className="mx-auto w-full max-w-6xl px-5 pb-24 sm:px-8">
+        <Suspense
+          fallback={
+            <>
+              <div className="mt-8 border border-ink/12 bg-paper p-4 sm:p-5" aria-hidden>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <div className="h-9 flex-1 animate-pulse bg-chalk-deep" />
+                  <div className="h-9 w-36 animate-pulse bg-chalk-deep" />
+                  <div className="h-9 w-32 animate-pulse bg-chalk-deep" />
+                </div>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <div className="h-7 w-20 animate-pulse bg-chalk-deep" />
+                  <div className="h-7 w-28 animate-pulse bg-chalk-deep" />
+                  <div className="h-7 w-24 animate-pulse bg-chalk-deep" />
+                </div>
+              </div>
+              <div className="exhibit-grid mt-10 grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+                {browse.map((exhibit) => (
+                  <ExhibitCard key={exhibit.slug} exhibit={exhibit} showSummary />
+                ))}
+              </div>
+            </>
+          }
+        >
+          <ExhibitBrowser exhibits={browse} />
+        </Suspense>
+      </main>
+      <SiteFooter />
+    </>
   );
 }

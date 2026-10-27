@@ -17,14 +17,14 @@ export default function AuthMenu() {
   const { data, isPending } = authClient.useSession();
 
   if (isPending) {
-    return <span aria-hidden className="h-2.5 w-9 animate-pulse bg-ink/[0.07]" />;
+    return <span aria-hidden className="h-2.5 w-9 animate-pulse bg-current opacity-10" />;
   }
 
   if (!data?.user) {
     return (
       <Link
         href="/login"
-        className="text-[12px] text-ink-soft transition-colors hover:text-ink sm:text-[13px]"
+        className="text-[12px] opacity-70 transition-opacity hover:opacity-100 sm:text-[13px]"
       >
         Sign in
       </Link>
@@ -35,7 +35,7 @@ export default function AuthMenu() {
     <div className="flex items-center gap-3 sm:gap-4">
       <Link
         href="/passport"
-        className="text-[12px] text-ink-soft transition-colors hover:text-ink sm:text-[13px]"
+        className="text-[12px] opacity-70 transition-opacity hover:opacity-100 sm:text-[13px]"
       >
         Passport
       </Link>

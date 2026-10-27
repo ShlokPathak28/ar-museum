@@ -20,20 +20,20 @@ type Props = {
  */
 export default function SiteHeader({ back }: Props) {
   return (
-    <header className="sticky top-0 z-40 border-b border-ink/10 bg-chalk/90 backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b border-chalk/10 bg-vault/95 text-chalk backdrop-blur-md print:hidden">
       <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-5 py-3.5 sm:px-8">
         <div className="flex min-w-0 items-baseline gap-3">
-          <Link href="/" className="font-serif text-[19px] leading-none tracking-tight">
+          <Link href="/" className="font-serif text-[20px] leading-none tracking-tight text-chalk">
             Dharohar
           </Link>
-          <span aria-hidden className="hidden h-3 w-px bg-ink/20 sm:block" />
-          <span className="hidden text-[11px] uppercase tracking-[0.14em] text-ink-soft sm:block">
+          <span aria-hidden className="hidden h-3 w-px bg-chalk/15 sm:block" />
+          <span className="hidden text-[11px] uppercase tracking-[0.14em] text-chalk/40 sm:block">
             Museum of Material Culture
           </span>
           {back ? (
             <Link
               href={back.href}
-              className="ml-1 whitespace-nowrap text-[13px] text-ink-soft transition-colors hover:text-ink"
+              className="ml-1 whitespace-nowrap text-[13px] text-chalk/55 transition-colors hover:text-chalk"
             >
               ← {back.label}
             </Link>
@@ -45,12 +45,12 @@ export default function SiteHeader({ back }: Props) {
             <Link
               key={item.href}
               href={item.href}
-              className="relative text-[12px] text-ink-soft transition-colors after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-oxblood after:transition-[width] after:duration-300 hover:text-ink hover:after:w-full sm:text-[13px]"
+              className="relative text-[12px] text-chalk/60 transition-colors after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-brass-light after:transition-[width] after:duration-300 hover:text-chalk hover:after:w-full sm:text-[13px]"
             >
               {item.label}
             </Link>
           ))}
-          <span aria-hidden className="h-3 w-px bg-ink/15" />
+          <span aria-hidden className="h-3 w-px bg-chalk/15" />
           <AuthMenu />
         </nav>
       </div>

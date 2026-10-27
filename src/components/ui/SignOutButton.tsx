@@ -23,7 +23,7 @@ export default function SignOutButton({ redirectTo }: { redirectTo?: string }) {
       type="button"
       onClick={signOut}
       disabled={pending}
-      className="font-mono text-[11px] uppercase tracking-widest text-ink-soft hover:text-ink disabled:opacity-60"
+      className="font-mono text-[11px] uppercase tracking-widest opacity-60 transition-opacity hover:opacity-100 disabled:opacity-40"
     >
       {pending ? "Signing out…" : "Sign out"}
     </button>

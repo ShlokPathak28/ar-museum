@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
+import PageMasthead from "@/components/site/PageMasthead";
+import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
 import { prisma } from "@/lib/db";
 
@@ -25,25 +27,19 @@ export default async function RoomsPage() {
   return (
     <>
       <SiteHeader />
+      <PageMasthead
+        eyebrow={`${rooms.length} rooms · two floors`}
+        title="The rooms"
+        lede="Each room has a 360° view you can steer by hand or by moving your phone. The markers on the panorama open the object they sit beside."
+      />
 
       <main className="mx-auto w-full max-w-5xl px-5 pb-24 sm:px-8">
-        <section className="border-b border-ink/10 pb-10 pt-12">
-          <p className="font-mono text-[11px] tracking-[0.18em] text-ink-soft">
-            {rooms.length} rooms · two floors
-          </p>
-          <h1 className="mt-4 font-serif text-4xl tracking-tight sm:text-5xl">Rooms</h1>
-          <p className="mt-5 max-w-2xl leading-relaxed text-ink-soft">
-            Each room has a 360° view you can steer by hand or by moving your phone. The markers
-            on the panorama open the object they sit beside.
-          </p>
-        </section>
-
-        <ul className="exhibit-grid mt-10 grid gap-8 sm:grid-cols-2">
+        <ul className="exhibit-grid mt-12 grid gap-8 sm:grid-cols-2">
           {rooms.map((room) => (
             <li key={room.id}>
               <Link href={`/rooms/${room.slug}`} className="group block">
-                <div className="border border-ink/12 bg-paper p-2 transition-colors duration-300 group-hover:border-ink/30">
-                  <div className="relative aspect-[2/1] overflow-hidden bg-chalk-deep">
+                <div className="bg-ink p-2 shadow-[0_32px_70px_-45px_rgba(22,20,15,0.85)] transition-transform duration-500 group-hover:-translate-y-1">
+                  <div className="relative aspect-[2/1] overflow-hidden bg-vault">
                     {room.panoramaUrl ? (
                       <Image
                         src={room.panoramaUrl}
@@ -51,14 +47,14 @@ export default async function RoomsPage() {
                         fill
                         sizes="(min-width: 640px) 45vw, 100vw"
                         unoptimized
-                        className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+                        className="object-cover opacity-90 transition duration-700 group-hover:scale-[1.03] group-hover:opacity-100"
                       />
                     ) : (
-                      <div className="grid h-full place-items-center px-4 text-center font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft">
+                      <div className="grid h-full place-items-center px-4 text-center font-mono text-[10px] uppercase tracking-[0.16em] text-chalk/50">
                         Panorama pending
                       </div>
                     )}
-                    <span className="absolute left-2 top-2 bg-paper/95 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.16em] text-ink-soft">
+                    <span className="absolute left-2 top-2 border border-chalk/25 bg-vault/80 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.16em] text-chalk/70">
                       360°
                     </span>
                   </div>
@@ -84,6 +80,7 @@ export default async function RoomsPage() {
           ))}
         </ul>
       </main>
+      <SiteFooter />
     </>
   );
 }

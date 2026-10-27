@@ -130,7 +130,7 @@ export default function ModelViewer({
     >
       <button
         slot="ar-button"
-        className="bg-ink px-4 py-2 text-[13px] font-medium text-paper transition-colors hover:bg-oxblood"
+        className="bg-brass-light px-4 py-2 text-[13px] font-medium text-vault transition-colors hover:bg-chalk"
       >
         Place in your room
       </button>
@@ -149,8 +149,8 @@ export default function ModelViewer({
             onClick={() => onSelectHotspot?.(active ? null : hotspot.id)}
             className={`flex h-7 w-7 items-center justify-center rounded-full border font-mono text-[11px] font-medium shadow-sm transition-colors ${
               active
-                ? "border-oxblood bg-oxblood text-paper"
-                : "border-paper/70 bg-ink/80 text-paper hover:bg-ink"
+                ? "border-brass-light bg-brass-light text-vault"
+                : "border-chalk/50 bg-vault/80 text-chalk hover:bg-vault"
             }`}
           >
             {index + 1}
@@ -169,8 +169,8 @@ export default function ModelViewer({
             className="object-contain"
           />
         ) : null}
-        <div className="absolute inset-0 grid place-items-center px-6 text-center text-sm text-ink-soft">
-          <p className="bg-paper/90 px-3 py-1.5">
+        <div className="absolute inset-0 grid place-items-center px-6 text-center text-sm text-chalk/55">
+          <p className="max-w-sm border border-chalk/10 bg-vault/85 px-3 py-1.5">
             {failed
               ? "The 3D viewer could not load. Reload the page, and check the browser console if it happens again."
               : ready

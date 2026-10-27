@@ -4,6 +4,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import ExhibitViewer from "@/components/exhibit/ExhibitViewer";
+import PageMasthead from "@/components/site/PageMasthead";
+import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
 import { prisma } from "@/lib/db";
 import { absoluteUrl, siteName, siteUrl } from "@/lib/site";
@@ -178,6 +180,17 @@ export default async function ExhibitPage({ params }: Params) {
   return (
     <>
       <SiteHeader back={{ href: "/exhibits", label: "Collection" }} />
+      <PageMasthead
+        eyebrow={`${exhibit.room.name} · ${exhibit.code}`}
+        title={exhibit.title}
+        lede={exhibit.subtitle ?? exhibit.summary}
+        aside={
+          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-chalk/45">
+            {exhibit.era}
+            {period ? ` · ${period}` : ""}
+          </p>
+        }
+      />
 
       <main className="mx-auto w-full max-w-6xl px-5 pb-24 sm:px-8">
         <script
@@ -185,115 +198,102 @@ export default async function ExhibitPage({ params }: Params) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
         />
 
-        <div className="grid gap-10 border-t border-ink/10 pt-10 lg:grid-cols-[1.15fr_0.85fr]">
+        <div className="grid gap-10 pt-12 lg:grid-cols-[1.15fr_0.85fr]">
           <div>
-            <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1 font-mono text-[11px] tracking-[0.18em] text-oxblood">
-              <Link href={`/rooms/${exhibit.room.slug}`} className="hover:underline">
-                {exhibit.room.name}
-              </Link>
-              <span className="text-ink-soft">{exhibit.code}</span>
-            </p>
-            <h1 className="mt-3 text-balance font-serif text-4xl leading-tight tracking-tight sm:text-5xl">
-              {exhibit.title}
-            </h1>
-            {exhibit.subtitle ? (
-              <p className="mt-3 text-lg leading-relaxed text-ink-soft">{exhibit.subtitle}</p>
+            {modelUrl ? (
+              <ExhibitViewer
+                modelUrl={modelUrl}
+                alt={exhibit.title}
+                hotspots={hotspots}
+                caption={caption}
+                usdzUrl={exhibit.modelUsdz}
+                posterSrc={exhibit.heroImage}
+              />
+            ) : (
+              <div className="mt-8 border border-dashed border-ink/20 bg-paper/60 px-6 py-10 text-center">
+                <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-ink-soft">
+                  No 3D model yet
+                </p>
+                <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-ink-soft">
+                  This object is documented in text and images. Its scan is scheduled for a later
+                  phase of the project.
+                </p>
+              </div>
+            )}
+
+            <div className="mt-10 space-y-5 text-[15px] leading-relaxed text-ink/90">
+              {paragraphs.map((paragraph, index) => (
+                <p key={index}>{paragraph}</p>
+              ))}
+            </div>
+          </div>
+
+          <aside className="space-y-6 lg:sticky lg:top-8 lg:self-start">
+            <div className="overflow-hidden border border-ink/12 bg-paper">
+              <div className="p-2">
+                <Image
+                  src={exhibit.heroImage}
+                  alt={exhibit.title}
+                  width={1200}
+                  height={900}
+                  unoptimized
+                  className="aspect-[4/3] w-full bg-chalk-deep object-cover"
+                />
+              </div>
+              <dl className="divide-y divide-ink/10 border-t border-ink/10 text-sm">
+                <div className="flex justify-between gap-4 px-4 py-2.5">
+                  <dt className="text-ink-soft">Code</dt>
+                  <dd className="font-mono">{exhibit.code}</dd>
+                </div>
+                <div className="flex justify-between gap-4 px-4 py-2.5">
+                  <dt className="text-ink-soft">Room</dt>
+                  <dd>
+                    <Link href={`/rooms/${exhibit.room.slug}`} className="hover:underline">
+                      {exhibit.room.name}
+                    </Link>
+                  </dd>
+                </div>
+                <div className="flex justify-between gap-4 px-4 py-2.5">
+                  <dt className="text-ink-soft">Era</dt>
+                  <dd className="text-right">{exhibit.era}</dd>
+                </div>
+                {period ? (
+                  <div className="flex justify-between gap-4 px-4 py-2.5">
+                    <dt className="text-ink-soft">Date</dt>
+                    <dd className="text-right">{period}</dd>
+                  </div>
+                ) : null}
+              </dl>
+            </div>
+
+            {facts.length > 0 ? (
+              <section className="border border-ink/12 bg-paper p-5">
+                <h2 className="font-serif text-lg tracking-tight">Four things to notice</h2>
+                <ul className="mt-3 space-y-2 text-sm leading-relaxed">
+                  {facts.map((fact) => (
+                    <li key={fact} className="flex gap-2">
+                      <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-oxblood" />
+                      <span>{fact}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
             ) : null}
 
-          {modelUrl ? (
-            <ExhibitViewer
-              modelUrl={modelUrl}
-              alt={exhibit.title}
-              hotspots={hotspots}
-              caption={caption}
-              usdzUrl={exhibit.modelUsdz}
-              posterSrc={exhibit.heroImage}
-            />
-          ) : (
-            <div className="mt-8 border border-dashed border-ink/20 bg-paper/60 px-6 py-10 text-center">
-              <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-ink-soft">
-                No 3D model yet
+            <div className="border border-ink/12 bg-paper p-5 text-sm">
+              <p className="leading-relaxed text-ink-soft">
+                {modelUrl
+                  ? "Open this page on a phone and tap “Place in your room” to set the object down at real scale."
+                  : "This exhibit has no AR mode yet."}
               </p>
-              <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-ink-soft">
-                This object is documented in text and images. Its scan is scheduled for a later
-                phase of the project.
-              </p>
+              <Link
+                href="/markers"
+                className="mt-3 inline-block font-medium text-oxblood hover:underline"
+              >
+                Print the marker card →
+              </Link>
             </div>
-          )}
-
-          <div className="mt-10 space-y-5 text-[15px] leading-relaxed text-ink/90">
-            {paragraphs.map((paragraph, index) => (
-              <p key={index}>{paragraph}</p>
-            ))}
-          </div>
-        </div>
-
-        <aside className="space-y-6 lg:sticky lg:top-8 lg:self-start">
-          <div className="overflow-hidden border border-ink/12 bg-paper">
-            <div className="p-2">
-              <Image
-                src={exhibit.heroImage}
-                alt={exhibit.title}
-                width={1200}
-                height={900}
-                unoptimized
-                className="aspect-[4/3] w-full bg-chalk-deep object-cover"
-              />
-            </div>
-            <dl className="divide-y divide-ink/10 border-t border-ink/10 text-sm">
-              <div className="flex justify-between gap-4 px-4 py-2.5">
-                <dt className="text-ink-soft">Code</dt>
-                <dd className="font-mono">{exhibit.code}</dd>
-              </div>
-              <div className="flex justify-between gap-4 px-4 py-2.5">
-                <dt className="text-ink-soft">Room</dt>
-                <dd>
-                  <Link href={`/rooms/${exhibit.room.slug}`} className="hover:underline">
-                    {exhibit.room.name}
-                  </Link>
-                </dd>
-              </div>
-              <div className="flex justify-between gap-4 px-4 py-2.5">
-                <dt className="text-ink-soft">Era</dt>
-                <dd className="text-right">{exhibit.era}</dd>
-              </div>
-              {period ? (
-                <div className="flex justify-between gap-4 px-4 py-2.5">
-                  <dt className="text-ink-soft">Date</dt>
-                  <dd className="text-right">{period}</dd>
-                </div>
-              ) : null}
-            </dl>
-          </div>
-
-          {facts.length > 0 ? (
-            <section className="border border-ink/12 bg-paper p-5">
-              <h2 className="font-serif text-lg tracking-tight">Four things to notice</h2>
-              <ul className="mt-3 space-y-2 text-sm leading-relaxed">
-                {facts.map((fact) => (
-                  <li key={fact} className="flex gap-2">
-                    <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-oxblood" />
-                    <span>{fact}</span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ) : null}
-
-          <div className="border border-ink/12 bg-paper p-5 text-sm">
-            <p className="leading-relaxed text-ink-soft">
-              {modelUrl
-                ? "Open this page on a phone and tap “Place in your room” to set the object down at real scale."
-                : "This exhibit has no AR mode yet."}
-            </p>
-            <Link
-              href="/markers"
-              className="mt-3 inline-block font-medium text-oxblood hover:underline"
-            >
-              Print the marker card →
-            </Link>
-          </div>
-        </aside>
+          </aside>
       </div>
 
       <ReviewSection
@@ -304,6 +304,7 @@ export default async function ExhibitPage({ params }: Params) {
         count={reviewStats._count._all}
       />
       </main>
+      <SiteFooter />
     </>
   );
 }
