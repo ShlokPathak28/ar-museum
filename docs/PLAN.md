@@ -533,6 +533,19 @@ what changed from the plan, and what the next week inherits.
 - **Verified:** `tsc` and `eslint` clean; dev server restarted over HTTPS and every public route returns 200 and serves both masthead and footer — `/`, `/exhibits`, an exhibit, `/rooms`, both room pages, `/scan`, `/login`, `/register`, `/markers`. `/passport` still 307s to sign-in when signed out; an unknown exhibit is 404.
 - **Not verified:** the door transition and grain in a real interactive browser (headless captures the pre-animation state); the print preview of the marker cards; the real-device AR/VR pass — still the Week 3 gap.
 
+**Studio CRUD + moderation (27 Oct)** — closed
+
+- **Scope:** `/studio` (counts, drafts waiting, latest reviews), `/studio/exhibits` (status tabs, publish/unpublish, edit link), `/studio/exhibits/new`, `/studio/exhibits/[id]`, `/studio/reviews` (hide/restore/delete). Tours, analytics and file upload are deliberately not built: media fields take a `/public` path or an `https:` URL.
+- **Guard:** `requireAdmin()` (`src/lib/admin.ts`) runs in the studio layout **and** at the top of every action. Signed out → `/login?next=…`; signed in but not an admin → `notFound()`, so the route's existence is not confirmed. `proxy.ts` now matches `/studio` as well as `/studio/:path*`.
+- **Actions:** `saveExhibit`, `setExhibitStatus`, `deleteExhibit`, `setReviewStatus`, `deleteReviewAsAdmin`. Each returns `{ok, error, fieldErrors?}` instead of throwing, so the client renders the message inline. `exhibitAdminSchema` in `src/lib/schemas.ts` is shared by `react-hook-form` and the action, so the browser cannot widen what the editor accepts; blanks become `NULL` and `facts` is stored as JSON `string[]`.
+- **Revalidation:** `revalidateMuseum()` busts `/`, `/exhibits`, `/rooms`, `/scan`, `/markers`, `/sitemap.xml` plus the old and new exhibit/room slugs on a move, so a save is visible without waiting out the 60 s ISR window.
+- **UI:** `ExhibitForm` (three fieldsets, inline field errors), `PublishToggle`, `DeleteExhibitButton` and `ModerationButtons` are client islands using `useTransition`; deletes confirm with `window.confirm`. Hiding a review keeps the row (and its author's passport entry) but drops it from the public page and the average.
+- **Navigation:** `AuthMenu` gained an admin-only Studio link; `/studio` was already `noindex` and disallowed in `robots.ts`.
+- **Bug found and fixed — reviews could never be posted:** `register("rating", { setValueAs: Number })` does nothing for a radio group (react-hook-form reads radios as raw strings and skips `setValueAs`), so the shared schema rejected every submission with "expected number, received string". Replaced with a `Controller` that calls `field.onChange(Number)`. The Week 2 note that the review form was "not verified in a browser" is why this survived; it is now exercised in one.
+- **Turbopack gotcha:** after adding a new export to `src/lib/schemas.ts`, the Server Action kept importing it as `undefined` (`Cannot read properties of undefined (reading 'safeParse')`) even across a dev-server restart. Deleting `.next` and starting again fixed it; the module itself was fine under `tsx`.
+- **Verified in the in-app browser over HTTPS:** admin sign-in → create draft → appears in the drafts tab → publish → `/exhibits/studio-test-lamp` 200 → unpublish → 404 → delete → 404, counts back to 5 published / 1 draft; blank form submit shows the seven expected field messages; visitor posts a review (5/5), admin hides it (gone from the page, "No reviews yet"), restores it (back at 5.0 / 1 review), then deletes it; signed-out `/studio/exhibits` 307 → `/login?next=%2Fstudio%2Fexhibits`; signed-in visitor gets a 404 and no Studio link. Test exhibit and review removed afterwards — the DB is back to 6 exhibits / 0 reviews.
+- **Not verified:** the studio on a phone, and image/model upload (not built).
+
 ### Week 3–4 — planned
 
 #### Stretch — themed room pages

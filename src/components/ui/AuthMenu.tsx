@@ -33,6 +33,14 @@ export default function AuthMenu() {
 
   return (
     <div className="flex items-center gap-3 sm:gap-4">
+      {(data.user as { role?: string }).role === "ADMIN" ? (
+        <Link
+          href="/studio"
+          className="text-[12px] opacity-70 transition-opacity hover:opacity-100 sm:text-[13px]"
+        >
+          Studio
+        </Link>
+      ) : null}
       <Link
         href="/passport"
         className="text-[12px] opacity-70 transition-opacity hover:opacity-100 sm:text-[13px]"

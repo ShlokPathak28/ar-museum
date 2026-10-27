@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useEffect, useMemo, useOptimistic, useState, useTransition } from "react";
-import { useForm, useWatch } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 
 import { authClient } from "@/lib/auth-client";
 import { formatDate } from "@/lib/format-date";
@@ -189,25 +189,40 @@ export default function ReviewSection({ exhibitId, slug, reviews, average, count
                   Rating
                 </legend>
                 <div className="mt-2 flex gap-1">
-                  {STARS.map((value) => (
-                    <label key={value} className="cursor-pointer">
-                      <input
-                        type="radio"
-                        value={value}
-                        {...register("rating", { setValueAs: Number })}
-                        className="peer sr-only"
-                      />
-                      <span
-                        aria-hidden="true"
-                        className={`text-2xl leading-none transition-colors peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-oxblood ${
-                          value <= rating ? "text-oxblood" : "text-ink/20"
-                        }`}
-                      >
-                        ★
-                      </span>
-                      <span className="sr-only">{value} of 5</span>
-                    </label>
-                  ))}
+                  {/* A Controller, not `register`: react-hook-form reads a radio
+                      group as a raw string and ignores `setValueAs`, which made
+                      every rating fail the number check in the shared schema. */}
+                  <Controller
+                    control={control}
+                    name="rating"
+                    render={({ field }) => (
+                      <>
+                        {STARS.map((value) => (
+                          <label key={value} className="cursor-pointer">
+                            <input
+                              type="radio"
+                              value={value}
+                              name={field.name}
+                              ref={field.ref}
+                              checked={field.value === value}
+                              onChange={() => field.onChange(value)}
+                              onBlur={field.onBlur}
+                              className="peer sr-only"
+                            />
+                            <span
+                              aria-hidden="true"
+                              className={`text-2xl leading-none transition-colors peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-oxblood ${
+                                value <= rating ? "text-oxblood" : "text-ink/20"
+                              }`}
+                            >
+                              ★
+                            </span>
+                            <span className="sr-only">{value} of 5</span>
+                          </label>
+                        ))}
+                      </>
+                    )}
+                  />
                 </div>
                 {errors.rating ? (
                   <p role="alert" className="mt-2 text-sm text-oxblood">

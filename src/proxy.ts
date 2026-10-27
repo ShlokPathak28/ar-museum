@@ -43,6 +43,7 @@ export const config = {
     "/spike/:path*",
     "/passport",
     "/passport/:path*",
+    "/studio",
     "/studio/:path*",
   ],
 };
