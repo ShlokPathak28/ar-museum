@@ -19,7 +19,8 @@
     "db:push": "prisma db push",
     "db:seed": "prisma db seed",
     "db:admin": "node scripts/make-admin.mjs",
-    "db:studio": "node scripts/db-studio.mjs"
+    "db:studio": "node scripts/db-studio.mjs",
+    "print:cards": "node scripts/print-cards.mjs"
   },
   "dependencies": {
     "@better-auth/prisma-adapter": "^1.7.13",

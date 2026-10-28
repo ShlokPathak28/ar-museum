@@ -63,18 +63,18 @@ export default async function MarkersPage() {
       </div>
 
       <main id="main" tabIndex={-1} className="markers-page mx-auto w-full max-w-6xl px-5 pb-24 sm:px-8">
-        <h1 className="hidden pb-4 font-serif text-2xl tracking-tight print:block">
+        <h1 className="hidden pb-4 font-serif text-2xl tracking-tight">
           Marker cards
         </h1>
 
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 print:mt-0 print:grid-cols-2 print:gap-0">
+        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 print:mt-0">
           {cards.map((card) => (
             <article
               key={card.id}
               className="flex flex-col border border-ink/10 bg-paper p-5 print:break-inside-avoid print:rounded-none print:border-ink/30"
             >
               <div className="flex items-start gap-4">
-                <div className="h-20 w-20 shrink-0 overflow-hidden bg-chalk-deep">
+                <div className="card-image h-20 w-20 shrink-0 overflow-hidden bg-chalk-deep">
                   <Image
                     src={card.heroImage}
                     alt={card.title}
@@ -107,7 +107,7 @@ export default async function MarkersPage() {
                 </div>
                 <div
                   aria-hidden
-                  className="h-28 w-28 shrink-0 [&>svg]:h-full [&>svg]:w-full"
+                  className="card-qr h-28 w-28 shrink-0 [&>svg]:h-full [&>svg]:w-full"
                   dangerouslySetInnerHTML={{ __html: card.qrSvg }}
                 />
               </div>

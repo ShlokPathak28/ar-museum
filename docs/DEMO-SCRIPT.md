@@ -18,7 +18,8 @@ Run through this ten minutes before, not two.
 - [ ] Laptop signed in as `admin@dharohar.test` — the header shows **Studio**.
 - [ ] Phone signed in as `visitor@dharohar.test`, or signed out if you want to
       show the claim-on-sign-in moment.
-- [ ] One card printed from `/markers` (print to PDF, A6). Scan it once with the
+- [ ] One card printed: `npm run print:cards -- https://<LAN-IP>:3000`, then
+      print `docs/marker-cards.pdf` at 100% on A6 card. Scan it once with the
       phone camera and confirm it lands on the exhibit.
 - [ ] Reset the visitor's traces if this is a second rehearsal:
       `npm run db:seed` clears stamps, scans and reviews (it also resets Studio

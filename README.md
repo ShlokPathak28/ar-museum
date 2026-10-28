@@ -84,6 +84,7 @@ context, which is why this is not optional.
 | `npm run db:seed` | Reset and re-seed development data |
 | `npm run db:admin` | List users; promote an email to ADMIN |
 | `npm run db:studio` | Prisma Studio |
+| `npm run print:cards` | A6 marker-card PDF from `NEXT_PUBLIC_SITE_URL` (or `-- <origin>`) |
 | `npm run db:generate` | Regenerate the Prisma client |
 
 ## Project structure
@@ -113,7 +114,7 @@ e2e/                 Playwright specs
 
 ```bash
 npm test                    # 82 unit tests
-npm run test:e2e            # 19 end-to-end tests
+npm run test:e2e            # 20 end-to-end tests
 ```
 
 The e2e suite starts its own dev server and expects the demo accounts above.
@@ -149,8 +150,16 @@ Better Auth trusts the same list, so a stale IP also breaks sign-in with
 `Invalid origin`.
 
 **QR codes point at `localhost`.** The card encodes the address `/markers` was
-opened from. Open it on the LAN address before printing, or use the code printed
-under the QR.
+opened from, and `npm run print:cards` defaults to `NEXT_PUBLIC_SITE_URL`. Name
+the address the phone will use:
+
+```bash
+npm run print:cards -- https://192.168.1.42:3000
+```
+
+A PDF generated from `localhost` is not a printing bug — it is a card that can
+only be scanned on the laptop. Reprint from the origin in the phone's address
+bar, or use the code printed under the QR.
 
 **Reconstruction tab says the model could not be loaded.** The GLBs are
 Draco-compressed and the viewer needs `/draco/draco_decoder.wasm`. It ships in

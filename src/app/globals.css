@@ -285,17 +285,81 @@
   }
 }
 
+/*
+ * The marker cards are printed, not read on screen: one A6 sheet per object,
+ * with the QR large enough to scan from a desk.
+ *
+ * `@page` has to be at the top level and unnamed, and the size has to be in
+ * millimetres. Chromium ignores a size declared inside @media print when it
+ * paginates, Playwright's `preferCSSPageSize` ignores a named page, and the
+ * `A6` keyword is not one of the sizes Chrome knows (A3–A5, B4–B5, Letter,
+ * Legal, Ledger, Tabloid) — all three were tried, and each left the sheet at
+ * Letter with the card drawn in one corner. 105 × 148 mm is A6.
+ *
+ * The cost is that Ctrl+P on any other page also defaults to A6; /markers is
+ * the only page built to be printed, so that is the right trade.
+ */
+@page {
+  size: 105mm 148mm;
+  margin: 0;
+}
+
 @media print {
-  @page {
-    size: A6;
-    margin: 0;
-  }
   .markers-page {
     max-width: none;
+    margin: 0;
     padding: 0;
   }
+
+  /* One card per sheet. `display: block` on the grid beats its two columns,
+     which were sized for a 1280px screen and cannot fit 105mm. */
+  .markers-page > div {
+    display: block;
+    margin: 0;
+  }
+
   .markers-page article {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 105mm;
+    height: 148mm;
+    padding: 9mm;
+    border: 0;
     break-inside: avoid;
+    break-after: page;
     page-break-inside: avoid;
+    page-break-after: always;
+  }
+
+  .markers-page article:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  /* Photograph across the top, label under it, code and QR on the bottom edge. */
+  .markers-page article > div:first-child {
+    display: block;
+  }
+
+  .markers-page .card-image {
+    width: 100%;
+    height: 64mm;
+  }
+
+  /* The plates are padded 4:3; `cover` crops the object, which is the one
+     thing the card is for. */
+  .markers-page .card-image img {
+    object-fit: contain;
+  }
+
+  .markers-page article h2 {
+    font-size: 20px;
+    line-height: 1.25;
+  }
+
+  .markers-page .card-qr {
+    width: 34mm;
+    height: 34mm;
   }
 }

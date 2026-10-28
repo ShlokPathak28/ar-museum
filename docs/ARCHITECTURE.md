@@ -46,7 +46,10 @@ phone (QR → AR → 360°)        laptop (browse, Studio)
 
 `/markers` is `force-dynamic` on purpose: a printed QR must encode the address
 the page was opened on (laptop, LAN IP, deployed origin), so it cannot be
-prerendered once.
+prerendered once. `npm run print:cards -- <origin>` drives that page through
+Chromium and writes an A6 PDF, so the card and the browser's print dialog come
+out of the same `@page` rule. No PDF is committed: one generated from a laptop
+would encode `localhost` into every card.
 
 ## The QR path
 
