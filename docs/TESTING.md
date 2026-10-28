@@ -26,6 +26,7 @@ module by the same path the app uses.
 | `src/lib/__tests__/room-markers.test.ts` | `ROOM_MARKERS` | A marker bearing outside the panorama, a repeated short code, a code that no printed card could carry |
 | `src/lib/__tests__/origin.test.ts` | `resolveOrigin` | `localhost` leaking into a QR code from a phone, a proxy's `x-forwarded-*` being ignored |
 | `src/lib/__tests__/model-upload.test.ts` | `inspectGlb`, `formatBytes`, `safeFilename` | A renamed `.obj` or a truncated GLB reaching the viewer; a 4 MB cap that is off by one; a filename that breaks `Content-Disposition` |
+| `src/lib/__tests__/user-admin.test.ts` | `checkRoleChange`, `checkUserDeletion`, `isUserRole` | An admin removing their own access, or the museum ending up with no admin; a role string the schema does not allow |
 
 Not unit-tested: `passport.ts` and `session.ts`. Both start with `import
 "server-only"` and talk to Prisma/Next request state, so a unit test would mock
@@ -54,6 +55,7 @@ npm run test:e2e
 | `e2e/auth.spec.ts` | Signed out → `/login?next=…` and back; `/passport` is private; an admin sees the office; a signed-in visitor gets **404** (not 403) and no Studio link |
 | `e2e/reconstruction.spec.ts` | The Reconstruction tab decodes a Draco-compressed scan through `GLTFLoader` (which needs a decoder `model-viewer` gets for free), switches all three material states, and fetches the decoder from our own origin |
 | `e2e/studio-upload.spec.ts` | An admin uploads a real GLB to the draft exhibit, the field becomes `/api/models/<id>`, the route serves the exact bytes with `immutable`, the source line can be corrected without re-uploading, detaching and saving deletes the row (404); a file with the wrong magic bytes is refused before it is stored |
+| `e2e/studio-users.spec.ts` | `/studio/users` lists a fixture account, promotes it to ADMIN, demotes it to VISITOR, then deletes it after the confirm dialog; the signed-in admin's own row offers no role or delete controls |
 
 The a11y spec exists because the in-app browser used for the Week 5 audit never
 takes OS focus, so `:focus` could not be exercised there. Chromium under
@@ -90,15 +92,20 @@ keeps the run honest and still finishes in about 15 seconds. Set
 ### Deliberately out of scope
 
 - **No DB writes beyond the flow under test.** The QR redirect records a scan
-  and a stamp (that *is* the behaviour being checked). The upload spec is the
-  one studio write: it uses the seeded draft (`kalamkari-fragment`), and puts it
+  and a stamp (that *is* the behaviour being checked). The upload spec is one
+  studio write: it uses the seeded draft (`kalamkari-fragment`), and puts it
   back to DRAFT with no model and no `ModelAsset` rows before it finishes, so a
   re-run starts from the same place. It is serial, because both tests open the
-  same exhibit. The Week 4 CRUD pass was exercised by hand and recorded in
-  `docs/PLAN.md`, because a test that edits published content is a worse trade
-  than a manual check.
+  same exhibit. The people spec is the other: it inserts
+  `e2e-users-…@dharohar.test` directly with `@libsql/client` (registering
+  through the UI would replace the admin session under test) and deletes it in
+  `afterAll`; it is serial for the same reason. The Week 4 CRUD pass was
+  exercised by hand and recorded in `docs/PLAN.md`, because a test that edits
+  published content is a worse trade than a manual check.
 - **The upload spec assumes the draft has no model.** If a run is interrupted
   mid-test, the first test detaches the leftover before uploading.
+- **The people spec clears stale fixtures first.** An interrupted run can leave
+  an `e2e-users-…` row; `beforeAll` deletes those before inserting its own.
 - **No component tests / Testing Library.** They would need jsdom plus a
   renderer for every client island; the browser suite covers the same islands
   with less machinery.

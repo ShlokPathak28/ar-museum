@@ -604,6 +604,17 @@ what changed from the plan, and what the next week inherits.
 - **One compiler note:** `watch("modelUrl")` tripped `react-hooks/incompatible-library` under React Compiler. The form now uses `useWatch({ control, name: "modelUrl" })`, which subscribes to one field and is memoizable.
 - **Not done:** no real scan has been uploaded yet (the e2e fixture is a placeholder GLB), and the upload has not been exercised on the deployed origin — the 4 MB cap is chosen against Vercel's documented limit, not measured there.
 
+### Week 5 — Studio people (28 Oct) — closed
+
+- **The gap:** the only way to change a role was `npm run db:admin`, which needs a terminal and does not work against the deployed Postgres. The Studio could manage exhibits and reviews but not the accounts behind them. `/studio/users` now lists every account with its role, join date and activity, with role tabs and a name/email search.
+- **What an admin can do:** **Make admin** / **Make visitor**, and **Delete**. The page is linked from the Studio nav and the overview. Passwords stay out of it: Better Auth owns the hash, and the Studio never reads or writes `Account.password`.
+- **Two lockouts are prevented in code, not in a warning.** An admin cannot change or delete their own account, and the last admin cannot be demoted or deleted. The rules live in `src/lib/user-admin.ts` as pure functions (`checkRoleChange`, `checkUserDeletion`) so the page and the action agree, and `src/lib/__tests__/user-admin.test.ts` adds **11 tests** for self-changes, the last-admin case, unknown roles and the safe paths.
+- **The actions re-read the world inside a transaction.** `setUserRole` and `deleteUserAsAdmin` call `requireAdmin()` themselves, then read the target and `count({ role: "ADMIN" })` in the same transaction as the write. Two admins demoting each other at once cannot both see "there are two" and leave the museum with none.
+- **Deletion is explained before it happens.** Sessions, accounts and reviews cascade; scans and stamps keep their history with `userId` set to NULL, so visitor numbers do not fall when a person leaves. The confirm dialog says exactly that, and `revalidateMuseum()` refreshes the exhibit pages where a deleted reviewer was counted.
+- **The test fixture exposed a parallel-worker race.** The spec inserts an `e2e-users-…` row directly with `@libsql/client` (registering through the UI would replace the admin session under test) and deletes it in `afterAll`. With four workers, both tests in the file ran `beforeAll`, and each worker's cleanup deleted the other's fixture. The spec is now `mode: "serial"`; the full suite passes with four workers again.
+- **Verified:** `npm test` **105/105** (8 files); `npm run test:e2e` **24/24**, including `e2e/studio-users.spec.ts` (list → promote → demote → delete) and the self-row guard; `tsc`, `eslint --max-warnings=0` and `npm run build` clean.
+- **Deliberately out of scope:** editing someone's name or email (email is the login identity), resetting passwords, force-sign-out, and an audit log of who changed whom. Those are a larger account-takeover surface than "let an admin run the museum" needs today.
+
 ### Week 3–4 — planned
 
 #### Stretch — themed room pages

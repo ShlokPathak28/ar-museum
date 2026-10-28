@@ -73,6 +73,12 @@ export default async function StudioPage() {
           >
             Manage exhibits
           </Link>
+          <Link
+            href="/studio/users"
+            className="border border-ink/20 px-4 py-2 text-sm transition-colors hover:border-ink/50"
+          >
+            Manage people
+          </Link>
         </div>
       </div>
 

@@ -129,17 +129,26 @@ A signed-out visitor is redirected; a signed-in non-admin gets `notFound()` (404
 not 403), so the route's existence is not confirmed to them. The e2e suite
 asserts both behaviours.
 
+`/studio/users` follows the same rule. `setUserRole` and `deleteUserAsAdmin`
+re-check `requireAdmin()`, then read the target and the admin count inside the
+same transaction as the write. An admin cannot change or delete their own
+account, and the last admin cannot be demoted or deleted — two lockout mistakes
+that are cheaper to prevent than to recover from. Deleting an account cascades
+its sessions, accounts and reviews; scans and stamps keep their history with
+`userId` set to NULL, so visitor numbers do not fall when a person leaves.
+
 Review mutations follow the same rule at a smaller scale: `saveReview` and
 `deleteReview` re-read the session and re-check ownership before writing.
 
 ## Mutations: Server Actions first, route handlers where they fit
 
 Content changes are **Server Actions**: exhibit create/update/delete, publish,
-model upload, review moderation, review create/delete. They validate with the
-same Zod schema as the form (or, for an upload, the file's own header bytes), call
-`revalidateMuseum()` (or `revalidatePath` for the exhibit), and return a typed
-result the client renders inline. No client-side mutation library, no optimistic
-cache to invalidate by hand.
+model upload, user role change and account deletion, review moderation, review
+create/delete. They validate with the same Zod schema as the form (or, for an
+upload, the file's own header bytes), call `revalidateMuseum()` (or
+`revalidatePath` for the exhibit), and return a typed result the client renders
+inline. No client-side mutation library, no optimistic cache to invalidate by
+hand.
 
 Route handlers exist where a form action is the wrong shape:
 

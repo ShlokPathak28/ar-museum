@@ -8,7 +8,8 @@ stamps and leave reviews.
 
 **Status:** Week 5 in progress. Accessibility, tests and the performance pass are
 done; deployment and the demo kit are the remaining steps. Admins can add a 3D
-model to an exhibit from the Studio without a redeploy.
+model to an exhibit and manage visitor accounts from the Studio, without a
+redeploy.
 **Full plan and progress log:** [docs/PLAN.md](docs/PLAN.md)
 
 ---
@@ -37,8 +38,9 @@ starts with no users.
 | Visitor | `visitor@dharohar.test` | `museum-pass-2026` |
 
 Register a new account at `/register`; promote it with
-`npm run db:admin -- someone@example.com`. The script only changes `role` —
-passwords are hashed by Better Auth and never touched by our code.
+`npm run db:admin -- someone@example.com`, or from `/studio/users` once you are
+signed in as an admin. The script only changes `role` — passwords are hashed by
+Better Auth and never touched by our code.
 
 ## Getting started
 
@@ -108,6 +110,21 @@ on the public page as soon as the upload finishes. There is no redeploy.
 - Object storage (Vercel Blob, R2) is the documented upgrade path when files
   outgrow 4 MB; see `docs/ARCHITECTURE.md`.
 
+### Managing people
+
+`/studio/users` lists every account with its role, join date and activity, and
+can filter by role or search by name/email. From there an admin can:
+
+- **promote or demote** with `Make admin` / `Make visitor`;
+- **delete an account** — its sessions, sign-in and reviews go; its stamps and
+  scans stay in the visitor numbers with `userId` cleared.
+
+Two guards are enforced server-side, not just disabled in the UI: an admin
+cannot change or delete their own account, and the last admin cannot be demoted
+or deleted. Passwords are hashed by Better Auth and are never shown or edited
+here. The CLI (`npm run db:admin`) still works for the first admin, before
+anyone can reach `/studio/users`.
+
 ## Project structure
 
 ```
@@ -135,8 +152,8 @@ e2e/                 Playwright specs
 ## Testing
 
 ```bash
-npm test                    # 94 unit tests
-npm run test:e2e            # 22 end-to-end tests
+npm test                    # 105 unit tests
+npm run test:e2e            # 24 end-to-end tests
 ```
 
 The e2e suite starts its own dev server and expects the demo accounts above.
@@ -230,7 +247,7 @@ exhibit page's LCP. `docs/PERF-NOTES.md` has the trace.
 - **Week 2** — auth, `/scan`, passport, reviews ✅
 - **Week 3** — AR mode, 360° room viewer, fallbacks ✅
 - **Week 4** — Studio CRUD, publish/revalidate, review moderation ✅
-- **Week 5** — accessibility ✅, tests ✅, performance ✅, Studio model upload ✅, deploy + demo kit ⏳
+- **Week 5** — accessibility ✅, tests ✅, performance ✅, Studio model upload ✅, people management ✅, deploy + demo kit ⏳
 
 ## Credits
 
