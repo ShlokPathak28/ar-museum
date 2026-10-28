@@ -15,23 +15,24 @@ observed range, never a single lucky trace.
 
 | Page | Score | LCP | TBT | CLS | Transferred |
 |---|---|---|---|---|---|
-| `/` | 76–96 | 2.0–2.8 s | 90–510 ms | ~0 | 763 KiB |
-| `/exhibits` | 82–98 | 1.8–2.3 s | 90–530 ms | 0 | 953 KiB |
+| `/` | 84–96 | 2.0–2.6 s | 90–310 ms | ~0 | 499 KiB |
+| `/exhibits` | 87–98 | 1.8–2.2 s | 90–540 ms | 0 | 501 KiB |
+| `/rooms` | 89–90 | 2.3 s | 290 ms | 0 | 416 KiB |
 | `/rooms/material-worlds` | 64–86 | 2.0–2.7 s | 470–1,600 ms | 0 | 1,680 KiB |
-| `/exhibits/bidri-hookah-base` | 58–70 | 2.5–2.7 s | 1,150–3,300 ms | 0 | 1,334 KiB |
+| `/exhibits/bidri-hookah-base` | 58–70 | 2.5–2.8 s | 1,150–3,300 ms | 0 | 1,351 KiB |
 
-Accessibility, best practices and SEO are **100** on all four, in every run.
+Accessibility, best practices and SEO are **100** on all five, in every run.
 
-Two pages moved because of this week's work; the other two did not change and
-are listed for the record.
-
-Start of the week → now (different lever on each line; the like-for-like tests
+Start of the week → now (each line has its own lever; the like-for-like tests
 are in the sections below):
 
 | Page | Before | After |
 |---|---|---|
 | Room | **59** · LCP 10.3 s | **68** · LCP 2.4 s |
-| Exhibit | **54** · LCP 7.1 s · 5,130 KiB | **60** · LCP 2.6 s · 1,334 KiB |
+| Room index | **67** · LCP 11.1 s · 1,760 KiB | **89** · LCP 2.3 s · 416 KiB |
+| Exhibit | **54** · LCP 7.1 s · 5,130 KiB | **60** · LCP 2.8 s · 1,351 KiB |
+| Collection | 953 KiB | 501 KiB |
+| Home | 763 KiB | 499 KiB |
 
 ## What the page was actually waiting for
 
@@ -112,6 +113,26 @@ second paint. The compressed file also decodes faster, so more of its work
 lands inside the TBT window instead of before FCP. Bytes are a real win for a
 phone on a museum's Wi-Fi; the score is measuring something else.
 
+### `unoptimized` was doing what it said
+
+Six images were pinned to their source files: the home hero, the home room
+strip, every collection card, the exhibit page's aside, the marker thumbnails
+and the 3D poster. The card and thumbnail cases were the expensive ones — a
+160 px thumbnail downloaded a 100 KB photograph, and the exhibit page shipped
+one full-size JPEG twice.
+
+All except the poster now go through the optimizer with `sizes` that match the
+layout. The collection drops to **501 KiB** from 953, the home page to **499**
+from 763, the room index to **416** from 1,760. The poster keeps its direct
+fetch on purpose: it is the LCP image, 100 KB, and the optimizer would add a
+round trip in front of the paint we just fought for.
+
+Cards also learned where they are. `ExhibitCard` takes an `eager` flag and the
+first three cards of a grid — the row that is above the fold — are fetched
+eagerly instead of waiting for the lazy-load intersection. On `/rooms` that
+alone moved LCP from **11.1 s to 2.3 s**: the panorama thumbnails were being
+discovered after a full second of layout.
+
 ## Deferred three.js
 
 `@google/model-viewer` bundles three.js: ~400 KB of script evaluation that has
@@ -175,6 +196,12 @@ Turbopack then serves stale CSS and modules (hit three times this week).
   deferred import with idle cap, eager/high-priority poster.
 - `src/components/room/RoomStage.tsx`, `src/components/room/RoomViewer.tsx` —
   still through the optimizer, eager/high priority.
-- `src/app/page.tsx` — hero off the deprecated prop.
+- `src/app/page.tsx` — hero off the deprecated prop, room strip optimised.
+- `src/app/rooms/page.tsx` — panorama cards optimised, first row eager.
+- `src/components/exhibit/ExhibitCard.tsx`, `src/components/exhibit/ExhibitBrowser.tsx`,
+  `src/app/exhibits/page.tsx` — sized, optimised card images; `eager` for the
+  first row.
+- `src/app/exhibits/[slug]/page.tsx`, `src/app/markers/page.tsx` — same, for
+  the aside and the print thumbnails.
 - `public/models/*.glb`, `public/panoramas/*.webp` — re-encoded assets.
 - `prisma/seed.ts` — panorama paths now `.webp`.

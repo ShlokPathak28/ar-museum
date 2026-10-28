@@ -35,7 +35,7 @@ export default async function RoomsPage() {
 
       <main id="main" tabIndex={-1} className="mx-auto w-full max-w-5xl px-5 pb-24 sm:px-8">
         <ul className="exhibit-grid mt-12 grid gap-8 sm:grid-cols-2">
-          {rooms.map((room) => (
+          {rooms.map((room, index) => (
             <li key={room.id}>
               <Link href={`/rooms/${room.slug}`} className="group block">
                 <div className="bg-ink p-2 shadow-[0_32px_70px_-45px_rgba(22,20,15,0.85)] transition-transform duration-500 group-hover:-translate-y-1">
@@ -46,7 +46,12 @@ export default async function RoomsPage() {
                         alt={`Panorama of ${room.name}`}
                         fill
                         sizes="(min-width: 640px) 45vw, 100vw"
-                        unoptimized
+                        // The first two are the first row on a desktop grid and
+                        // the whole page above the fold on a phone; the rest can
+                        // wait. The card only needs a thumbnail, so the optimizer
+                        // serves one instead of the 700 KB panorama.
+                        loading={index < 2 ? "eager" : "lazy"}
+                        fetchPriority={index === 0 ? "high" : undefined}
                         className="object-cover opacity-90 transition duration-700 group-hover:scale-[1.03] group-hover:opacity-100"
                       />
                     ) : (

@@ -236,7 +236,7 @@ export default async function ExhibitPage({ params }: Params) {
                   alt={exhibit.title}
                   width={1200}
                   height={900}
-                  unoptimized
+                  sizes="(min-width: 1024px) 30vw, 100vw"
                   className="aspect-[4/3] w-full bg-chalk-deep object-cover"
                 />
               </div>

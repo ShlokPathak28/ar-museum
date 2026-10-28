@@ -282,7 +282,6 @@ export default async function HomePage() {
                           alt={`Panorama of ${room.name}`}
                           fill
                           sizes="(min-width: 640px) 45vw, 100vw"
-                          unoptimized
                           className="object-cover opacity-80 transition duration-700 group-hover:scale-[1.03] group-hover:opacity-100"
                         />
                       ) : null}

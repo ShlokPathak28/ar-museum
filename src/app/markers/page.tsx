@@ -80,7 +80,6 @@ export default async function MarkersPage() {
                     alt={card.title}
                     width={160}
                     height={160}
-                    unoptimized
                     className="h-full w-full object-cover"
                   />
                 </div>

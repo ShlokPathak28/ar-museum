@@ -20,9 +20,15 @@ type ExhibitCardProps = {
   exhibit: ExhibitCardData;
   /** Full-collection cards carry the summary; the home strip stays compact. */
   showSummary?: boolean;
+  /** The first row of a grid is above the fold and is often the page's LCP. */
+  eager?: boolean;
 };
 
-export default function ExhibitCard({ exhibit, showSummary = false }: ExhibitCardProps) {
+export default function ExhibitCard({
+  exhibit,
+  showSummary = false,
+  eager = false,
+}: ExhibitCardProps) {
   return (
     <article
       className="group/card"
@@ -36,7 +42,9 @@ export default function ExhibitCard({ exhibit, showSummary = false }: ExhibitCar
               alt={exhibit.title}
               width={1200}
               height={900}
-              unoptimized
+              sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 100vw"
+              loading={eager ? "eager" : "lazy"}
+              fetchPriority={eager ? "high" : undefined}
               className="aspect-[4/3] w-full object-cover transition-transform duration-700 group-hover/card:scale-[1.035]"
             />
             <span className="absolute bottom-2 left-2 bg-paper/95 px-2 py-0.5 font-mono text-[10px] tracking-[0.14em] text-ink-soft">

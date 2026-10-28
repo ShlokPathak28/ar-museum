@@ -85,8 +85,8 @@ export default async function ExhibitsPage() {
                 </div>
               </div>
               <div className="exhibit-grid mt-10 grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
-                {browse.map((exhibit) => (
-                  <ExhibitCard key={exhibit.slug} exhibit={exhibit} showSummary />
+                {browse.map((exhibit, index) => (
+                  <ExhibitCard key={exhibit.slug} exhibit={exhibit} showSummary eager={index < 3} />
                 ))}
               </div>
             </>
