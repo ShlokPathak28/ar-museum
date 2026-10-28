@@ -7,7 +7,8 @@ through the gallery. Admins run the museum from `/studio`; visitors collect
 stamps and leave reviews.
 
 **Status:** Week 5 in progress. Accessibility, tests and the performance pass are
-done; deployment and the demo kit are the remaining steps.
+done; deployment and the demo kit are the remaining steps. Admins can add a 3D
+model to an exhibit from the Studio without a redeploy.
 **Full plan and progress log:** [docs/PLAN.md](docs/PLAN.md)
 
 ---
@@ -87,13 +88,34 @@ context, which is why this is not optional.
 | `npm run print:cards` | A6 marker-card PDF from `NEXT_PUBLIC_SITE_URL` (or `-- <origin>`) |
 | `npm run db:generate` | Regenerate the Prisma client |
 
+### Adding a model from the Studio
+
+Open an exhibit in `/studio/exhibits/<id>` and use **Upload a model** in the
+media fieldset. The `.glb` is stored as a row in the database (Vercel's
+filesystem is read-only at runtime) and served from `/api/models/<id>`; the
+exhibit's `modelUrl` is swapped in the same transaction, so the change is live
+on the public page as soon as the upload finishes. There is no redeploy.
+
+- **Cap: 4 MB.** Vercel caps a function request at 4.5 MB. Compress first:
+  `npx @gltf-transform/cli optimize in.glb out.glb --texture-compress webp`.
+- The uploader checks the GLB header and JSON chunk server-side, and reports
+  whether the geometry is Draco-compressed.
+- **Source and licence** is shown on `/credits`; type it when you upload, and
+  use **Save source line** to correct it later without replacing the file.
+- Saving the exhibit with the field cleared deletes the stored bytes.
+- A new exhibit must be saved once before it can take an upload — the model
+  needs an exhibit id to belong to.
+- Object storage (Vercel Blob, R2) is the documented upgrade path when files
+  outgrow 4 MB; see `docs/ARCHITECTURE.md`.
+
 ## Project structure
 
 ```
 prisma/
-  schema.prisma      14 models: rooms, exhibits, hotspots, media, tours,
-                     users, sessions, reviews, scans, stamps, feedback
-  migrations/        three migrations
+  schema.prisma      15 models: rooms, exhibits, hotspots, media, tours,
+                     users, sessions, reviews, scans, stamps, feedback,
+                     uploaded model assets
+  migrations/        four migrations
   seed.ts            development data
   dev.db             local SQLite database (git-ignored)
 public/
@@ -113,8 +135,8 @@ e2e/                 Playwright specs
 ## Testing
 
 ```bash
-npm test                    # 82 unit tests
-npm run test:e2e            # 20 end-to-end tests
+npm test                    # 94 unit tests
+npm run test:e2e            # 22 end-to-end tests
 ```
 
 The e2e suite starts its own dev server and expects the demo accounts above.
@@ -208,7 +230,7 @@ exhibit page's LCP. `docs/PERF-NOTES.md` has the trace.
 - **Week 2** — auth, `/scan`, passport, reviews ✅
 - **Week 3** — AR mode, 360° room viewer, fallbacks ✅
 - **Week 4** — Studio CRUD, publish/revalidate, review moderation ✅
-- **Week 5** — accessibility ✅, tests ✅, performance ✅, deploy + demo kit ⏳
+- **Week 5** — accessibility ✅, tests ✅, performance ✅, Studio model upload ✅, deploy + demo kit ⏳
 
 ## Credits
 

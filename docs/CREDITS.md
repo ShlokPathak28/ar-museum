@@ -65,3 +65,10 @@ read as one catalogue.
   hand-built `ReconstructionViewer` attaches `DRACOLoader` pointed at
   `/draco/`. The two decoder files are copied from `three/examples/jsm/libs`
   rather than fetched from a CDN, so the demo works on a venue network.
+- **Models added from the Studio are a second source.** The uploader asks for a
+  source-and-licence line and stores it with the bytes; `/credits` reads every
+  published `ModelAsset` and prints that line. If it is blank the table says
+  "No source recorded" in oxblood rather than silently omitting the row — an
+  uncredited scan is a bug, not a formatting choice. `docs/CREDITS.md` is the
+  register for the seeded files only; uploads are listed at `/credits` because
+  they can arrive at any time.

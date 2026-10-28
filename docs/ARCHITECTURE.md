@@ -18,7 +18,7 @@ phone (QR → AR → 360°)        laptop (browse, Studio)
         Next.js 16 App Router (one process)
         ├─ RSC pages, ISR for the collection
         ├─ Server Actions for every mutation
-        ├─ route handlers: /x/[code], /api/qr, /api/v1, /api/auth
+        ├─ route handlers: /x/[code], /api/qr, /api/models, /api/v1, /api/auth
         └─ client islands: 3D, 360°, scanner, forms
                        │
                        ▼
@@ -40,6 +40,7 @@ phone (QR → AR → 360°)        laptop (browse, Studio)
 | `/studio/**` | dynamic, admin layout | always fresh, never cached |
 | `/x/[code]` | route handler, `force-dynamic` | redirect + scan/stamp write + device cookie |
 | `/api/qr/[code]` | route handler | PNG for a printed card |
+| `/api/models/[id]` | route handler, `force-dynamic`, immutable cache | the bytes of a model uploaded from the Studio |
 | `/api/v1/reviews/mine` | route handler, dynamic | the one read an ISR page cannot do for itself |
 | `/api/auth/[...all]` | Better Auth handler | sessions |
 | `/credits`, `/markers` | static / dynamic | credits are content; cards encode the host they were printed from |
@@ -93,6 +94,19 @@ SQLite has no native enums and no scalar lists, so:
 Moving to Postgres is a provider change plus converting those columns back to
 enums and arrays. The application code reads them through the same helpers.
 
+**Uploaded models live in the database.** Vercel's filesystem is read-only at
+runtime, so `public/` cannot receive an upload. `ModelAsset` stores the GLB as
+`Bytes` (plus filename, size, sha256, Draco flag and the curator's source line),
+and `/api/models/[id]` serves it. The alternative — Vercel Blob or R2 — means a
+new dependency, a token and a second failure mode; at 0.2–4 MB per scan the row
+is simpler. The 4 MB cap keeps the request under Vercel's 4.5 MB function body
+limit and keeps the exhibit page light.
+
+The bytes are immutable by construction: replacing a model inserts a new row
+with a new id in the same transaction that swaps `Exhibit.modelUrl`, then deletes
+the old row. That is what makes `cache-control: immutable` honest. Clearing the
+field and saving deletes the row, so a detached scan does not linger.
+
 ## Auth and authorisation
 
 Better Auth 1.7, email + password, sessions in an httpOnly cookie, `role` on the
@@ -121,15 +135,18 @@ Review mutations follow the same rule at a smaller scale: `saveReview` and
 ## Mutations: Server Actions first, route handlers where they fit
 
 Content changes are **Server Actions**: exhibit create/update/delete, publish,
-review moderation, review create/delete. They validate with the same Zod schema
-as the form, call `revalidateMuseum()` (or `revalidatePath` for the exhibit), and
-return a typed result the client renders inline. No client-side mutation library,
-no optimistic cache to invalidate by hand.
+model upload, review moderation, review create/delete. They validate with the
+same Zod schema as the form (or, for an upload, the file's own header bytes), call
+`revalidateMuseum()` (or `revalidatePath` for the exhibit), and return a typed
+result the client renders inline. No client-side mutation library, no optimistic
+cache to invalidate by hand.
 
 Route handlers exist where a form action is the wrong shape:
 
 - `/x/[code]` needs a redirect and a `Set-Cookie`.
 - `/api/qr/[code]` returns an image.
+- `/api/models/[id]` returns stored bytes with a long cache header, which a
+  Server Action cannot do.
 - `/api/v1/reviews/mine` answers "does this visitor already have a review here?"
   for an ISR page that cannot know who is reading it.
 - `/api/auth/[...all]` is Better Auth's.
@@ -143,6 +160,8 @@ for up to a minute, so the list lives in one place.
 **Object viewer** — `<model-viewer>` in a client component. It renders glTF in
 WebGL, exposes hotspots as real `<button>` elements, and hands the same file to
 WebXR / Scene Viewer for AR. AR is hidden when `canActivateAR` is false. The
+model URL is either a path in `public/models` (seeded exhibits) or
+`/api/models/<id>` for a Studio upload; the viewer does not care which. The
 module is imported **after** the poster image loads, on `requestIdleCallback`
 with a 2.5 s cap (a timer fallback for background tabs, where idle time and
 frames both stop). This keeps ~400 KB of three.js out of the first paint; the
@@ -205,10 +224,11 @@ The accessibility pass and its measurements are recorded in the Week 5 entry of
 Two suites, split by what they can see — `TESTING.md` has the table.
 
 - **Vitest** for pure modules: schemas, path safety, origin resolution, marker
-  maths, accent selection, date formatting.
+  maths, accent selection, date formatting, the GLB validator.
 - **Playwright** for the browser spine: skip link and landmarks, auth guards,
   entrance → collection → object, filters and URL mirroring, a room's objects
-  and 360 stage, a printed code redirect, the reconstruction tab's Draco path.
+  and 360 stage, a printed code redirect, the reconstruction tab's Draco path,
+  and an upload → serve → detach → 404 cycle.
 
 No component-render tests and no MSW: the only API the app calls is its own, and
 mocking it would test the mock rather than the session, proxy and database
@@ -227,6 +247,9 @@ Postgres). The pieces that change:
 3. `npm run db:migrate` (or `prisma migrate deploy`) + a seed on the new
    database.
 4. HTTPS is not optional: WebXR and the camera only exist in a secure context.
+5. Model uploads need no extra service — the bytes are rows. Vercel's 4.5 MB
+   function body cap is why the Studio cap is 4 MB; Blob/R2 is the upgrade path
+   if scans outgrow it.
 
 Nothing in the app depends on the local filesystem at runtime except
 `prisma/dev.db`, so the move is configuration, not code.
@@ -238,7 +261,7 @@ Nothing in the app depends on the local filesystem at runtime except
 | TanStack Query for search/infinite scroll | client filtering over the prerendered grid, URL-synced | six objects; a network round trip per keystroke would be slower |
 | Zustand + RTK for passport/studio state | `useState`, `useTransition`, `useOptimistic`, cookies + DB | no cross-route client state survived the cut; the passport is server data |
 | react-three-fiber + drei for 360° | plain `three` | the viewer is one sphere and a camera; r3f added a dependency for no pixels |
-| Cloudinary uploads | image paths in the database; assets in `public/` | upload was cut in week 4; the schema keeps `Media` for it |
+| Cloudinary uploads | a Studio upload stored as bytes in Postgres | no new dependency or token; 4 MB cap fits the function limit and the model sizes |
 | Postgres on Neon | SQLite via libSQL locally | deployment is the remaining step; the adapter is the only change |
 | `@modal` intercepting quick-look | full page navigation | the page is fast enough that a modal added complexity without a win |
 | Tours builder | schema + seed only, no Studio UI | cut order put tours after the admin CRUD pass |

@@ -34,6 +34,7 @@ export default async function EditExhibitPage({ params }: Props) {
       where: { id },
       include: {
         room: { select: { name: true } },
+        modelAsset: { select: { credit: true } },
         _count: { select: { reviews: true, stamps: true } },
       },
     }),
@@ -88,6 +89,7 @@ export default async function EditExhibitPage({ params }: Props) {
             tags: exhibit.tags,
             heroImage: exhibit.heroImage,
             modelUrl: exhibit.modelUrl ?? "",
+            modelCredit: exhibit.modelAsset?.credit ?? "",
             modelUsdz: exhibit.modelUsdz ?? "",
             status: published ? "PUBLISHED" : "DRAFT",
           }}

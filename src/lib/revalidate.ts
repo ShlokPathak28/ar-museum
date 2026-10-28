@@ -8,7 +8,7 @@ import { revalidatePath } from "next/cache";
  * label for up to a minute.
  */
 export function revalidateMuseum(options: { slug?: string; roomSlug?: string } = {}) {
-  for (const path of ["/", "/exhibits", "/rooms", "/scan", "/markers", "/sitemap.xml"]) {
+  for (const path of ["/", "/exhibits", "/rooms", "/scan", "/markers", "/credits", "/sitemap.xml"]) {
     revalidatePath(path);
   }
 

@@ -60,8 +60,34 @@ model Exhibit {
   stops    TourStop[]
   stamps   Stamp[]
 
+  modelAsset ModelAsset?
+
   @@index([roomId])
   @@index([status])
+}
+
+/**
+ * A model uploaded from the Studio, stored in the database rather than on disk.
+ *
+ * Vercel's filesystem is read-only at runtime, so an upload has nowhere to go
+ * except object storage or the database. At 0.2-4 MB per scan the database is
+ * the cheaper answer: no new dependency, no token, and the row is deleted with
+ * its exhibit. `bytes` is served by /api/models/[id] with an immutable cache
+ * header, which is safe because a replacement upload gets a new id.
+ */
+model ModelAsset {
+  id        String   @id @default(cuid())
+  filename  String
+  mimeType  String   @default("model/gltf-binary")
+  size      Int
+  sha256    String
+  draco     Boolean  @default(false)
+  credit    String?
+  bytes     Bytes
+  createdAt DateTime @default(now())
+
+  exhibitId String  @unique
+  exhibit   Exhibit @relation(fields: [exhibitId], references: [id], onDelete: Cascade)
 }
 
 model Hotspot {

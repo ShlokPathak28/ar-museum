@@ -4,16 +4,17 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 
 import { exhibitAdminSchema, type ExhibitAdminValues } from "@/lib/schemas";
 
 import { saveExhibit } from "./actions";
 import DeleteExhibitButton from "./DeleteExhibitButton";
+import ModelUpload from "./ModelUpload";
 
 export type RoomOption = { id: string; name: string; floor: string };
 
-export type ExhibitFormInitial = ExhibitAdminValues & { id: string };
+export type ExhibitFormInitial = ExhibitAdminValues & { id: string; modelCredit?: string };
 
 type Props = {
   rooms: RoomOption[];
@@ -35,6 +36,8 @@ export default function ExhibitForm({ rooms, exhibit }: Props) {
     register,
     handleSubmit,
     setError,
+    setValue,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<ExhibitAdminValues>({
     resolver: zodResolver(exhibitAdminSchema),
@@ -57,6 +60,10 @@ export default function ExhibitForm({ rooms, exhibit }: Props) {
       status: "DRAFT",
     },
   });
+
+  // `watch()` cannot be memoised by the React Compiler (react-hooks/
+  // incompatible-library); `useWatch` subscribes to one field instead.
+  const modelUrl = useWatch({ control, name: "modelUrl" }) ?? "";
 
   const onSubmit = handleSubmit(async (values) => {
     setFormError(null);
@@ -316,6 +323,9 @@ export default function ExhibitForm({ rooms, exhibit }: Props) {
               GLB model <span className="normal-case tracking-normal">(optional)</span>
             </label>
             <input id="modelUrl" {...register("modelUrl")} className={fieldClass} />
+            <p className={hintClass}>
+              A path under /public, an https URL, or an uploaded file — see below.
+            </p>
             {errors.modelUrl ? (
               <p role="alert" className="mt-1 text-sm text-oxblood">
                 {errors.modelUrl.message}
@@ -335,6 +345,21 @@ export default function ExhibitForm({ rooms, exhibit }: Props) {
             ) : null}
           </div>
         </div>
+
+        {exhibit ? (
+          <ModelUpload
+            exhibitId={exhibit.id}
+            value={modelUrl}
+            initialCredit={exhibit.modelCredit ?? ""}
+            onChange={(url) => setValue("modelUrl", url, { shouldDirty: true })}
+          />
+        ) : (
+          <p className={hintClass}>
+            Save the exhibit once, then upload its .glb here. A file in{" "}
+            <code className="font-mono text-[11px]">/public/models</code> can be typed in now
+            instead.
+          </p>
+        )}
       </fieldset>
 
       <div className="flex flex-wrap items-center gap-4 border-t border-ink/15 pt-6">

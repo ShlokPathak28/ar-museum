@@ -10,6 +10,11 @@ import {
   SOFTWARE_CREDITS,
   type AssetCredit,
 } from "@/lib/credits";
+import { prisma } from "@/lib/db";
+import { formatBytes } from "@/lib/model-upload";
+
+// The register is content, but uploads arrive from the Studio at any time.
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Credits",
@@ -67,7 +72,20 @@ function AssetTable({ rows, label }: { rows: AssetCredit[]; label: string }) {
   );
 }
 
-export default function CreditsPage() {
+export default async function CreditsPage() {
+  const uploaded = await prisma.modelAsset.findMany({
+    where: { exhibit: { status: "PUBLISHED" } },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      filename: true,
+      size: true,
+      draco: true,
+      credit: true,
+      exhibit: { select: { title: true, slug: true } },
+    },
+  });
+
   return (
     <>
       <SiteHeader />
@@ -100,6 +118,72 @@ export default function CreditsPage() {
           </p>
           <AssetTable rows={MODEL_CREDITS} label="3D model credits" />
         </section>
+
+        {uploaded.length > 0 ? (
+          <section className="mt-14">
+            <h2 className="font-serif text-3xl tracking-tight">Uploaded models</h2>
+            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink-soft">
+              Scans added from the Studio after launch. They are stored in the
+              database and served from{" "}
+              <code className="font-mono text-[12px]">/api/models/…</code>; the
+              source line is the one the curator typed when uploading, and it is
+              the record a licence question is answered from.
+            </p>
+
+            <div className="mt-6 overflow-x-auto border border-ink/12 bg-paper">
+              <table className="w-full min-w-[40rem] border-collapse text-left text-sm">
+                <caption className="sr-only">Uploaded model credits</caption>
+                <thead>
+                  <tr className="border-b border-ink/15 font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft">
+                    <th scope="col" className="px-4 py-3 font-normal">
+                      File
+                    </th>
+                    <th scope="col" className="px-4 py-3 font-normal">
+                      Exhibit
+                    </th>
+                    <th scope="col" className="px-4 py-3 font-normal">
+                      Size
+                    </th>
+                    <th scope="col" className="px-4 py-3 font-normal">
+                      Source and licence
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {uploaded.map((asset) => (
+                    <tr
+                      key={asset.id}
+                      className="border-b border-ink/10 align-top last:border-0"
+                    >
+                      <td className="px-4 py-3 font-mono text-[11px] leading-relaxed break-all text-ink-soft">
+                        {asset.filename}
+                      </td>
+                      <td className="px-4 py-3 leading-relaxed">
+                        <a
+                          href={`/exhibits/${asset.exhibit.slug}`}
+                          className="text-oxblood underline decoration-oxblood/30 underline-offset-2 transition-colors hover:decoration-oxblood"
+                        >
+                          {asset.exhibit.title}
+                        </a>
+                      </td>
+                      <td className="px-4 py-3 font-mono text-[11px] whitespace-nowrap text-ink-soft">
+                        {formatBytes(asset.size)}
+                        {asset.draco ? " · Draco" : ""}
+                      </td>
+                      <td className="px-4 py-3 leading-relaxed">
+                        {asset.credit ?? (
+                          <span className="text-oxblood">
+                            No source recorded — add one in the Studio.
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        ) : null}
 
         <section className="mt-14">
           <h2 className="font-serif text-3xl tracking-tight">Room panoramas</h2>

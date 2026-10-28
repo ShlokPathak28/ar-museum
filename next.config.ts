@@ -14,6 +14,12 @@ const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
   allowedDevOrigins,
+  experimental: {
+    // A model upload is a Server Action carrying up to 4 MB of bytes (the cap
+    // in src/lib/model-upload.ts) plus multipart overhead. Vercel caps a
+    // function's request body at 4.5 MB, which is the limit that matters.
+    serverActions: { bodySizeLimit: "5mb" },
+  },
   turbopack: {
     rules: {
       "*.css": {
