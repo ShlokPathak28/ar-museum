@@ -31,13 +31,15 @@ type Props = {
 export default function RoomStage({ src, alt, hotspots }: Props) {
   return (
     <div className="relative h-[60vh] min-h-[360px] w-full overflow-hidden border border-ink/15 bg-vault shadow-[0_40px_80px_-50px_rgba(22,20,15,0.9)]">
+      {/* The still is the first paint, so it is allowed to be a smaller copy:
+          the 360 texture behind it is the sharp one, and it arrives later. */}
       <Image
         src={src}
         alt=""
         fill
         sizes="100vw"
-        unoptimized
-        priority
+        loading="eager"
+        fetchPriority="high"
         className="object-cover opacity-90"
       />
       <div className="absolute inset-0">

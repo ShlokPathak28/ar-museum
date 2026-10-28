@@ -14,7 +14,7 @@ const ROOMS = [
     floor: "Ground floor",
     intro:
       "Clay, metal and pigment, side by side. The ground floor follows three materials from the ground they come from to the stories they carry.",
-    panoramaUrl: "/panoramas/material-worlds.jpg",
+    panoramaUrl: "/panoramas/material-worlds.webp",
   },
   {
     slug: "everyday-objects",
@@ -22,7 +22,7 @@ const ROOMS = [
     floor: "First floor",
     intro:
       "The first floor is about use: the things a household reaches for daily, and the small decisions that made them last.",
-    panoramaUrl: "/panoramas/everyday-objects.jpg",
+    panoramaUrl: "/panoramas/everyday-objects.webp",
   },
 ];
 

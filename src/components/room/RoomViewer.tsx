@@ -396,13 +396,15 @@ export default function RoomViewer({ src, alt, hotspots }: Props) {
 
       {status !== "ready" ? (
         <div className="absolute inset-0 z-20">
+          {/* Same smaller still as the stage: this is the loading backdrop,
+              not the texture the viewer will pan across. */}
           <Image
             src={src}
             alt=""
             fill
             sizes="100vw"
-            unoptimized
-            priority
+            loading="eager"
+            fetchPriority="high"
             className="object-cover opacity-60"
           />
           <div className="absolute inset-0 grid place-items-center bg-ink/40 px-6 text-center">

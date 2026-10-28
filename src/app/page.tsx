@@ -141,7 +141,8 @@ export default async function HomePage() {
                     fill
                     sizes="(min-width: 1024px) 44vw, 90vw"
                     unoptimized
-                    priority
+                    loading="eager"
+                    fetchPriority="high"
                     className="object-cover opacity-90 saturate-[0.9]"
                     style={{
                       maskImage:
