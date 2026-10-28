@@ -97,6 +97,16 @@ Compressed with `@gltf-transform/cli` — Draco for geometry, WebP for textures,
 `weld` + `prune` first. Run through `npx`, not added to `package.json`: it is a
 one-off asset step, not a runtime dependency.
 
+**The decoder this made necessary.** `<model-viewer>` ships its own Draco
+decoder, so the Object tab kept working and the compression looked finished.
+The Reconstruction tab builds its scene by hand with `GLTFLoader`, which has no
+decoder unless you give it one — so it silently fell back to "the model file
+could not be loaded" while every other check on the page passed. `DRACOLoader`
+now points at `/draco/`, two files copied out of `three/examples/jsm/libs`
+(188 KB wasm + 57 KB wrapper), fetched only when that tab is opened and never
+by the exhibit's first paint. `e2e/reconstruction.spec.ts` guards it, including
+that the decoder comes from our own origin rather than a CDN.
+
 **The like-for-like result is the interesting one.** Same page, same code, only
 the GLB swapped back to the original:
 

@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Vendored, minified third-party decoders (Draco) served as static files.
+    "public/**",
   ]),
 ]);
 

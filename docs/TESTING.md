@@ -51,6 +51,7 @@ npm run test:e2e
 | `e2e/public.spec.ts` | Entrance → collection → object; filtering with the URL kept in sync; a room page and its 360 stage; `/x/TH01` redirecting to the right object with a device cookie; an unknown code falling back to `/exhibits` |
 | `e2e/a11y.spec.ts` | The skip link is the first Tab stop, becomes visible, and lands focus on `<main>`; the studio has its own; one `h1` and one `main#main` on every public route |
 | `e2e/auth.spec.ts` | Signed out → `/login?next=…` and back; `/passport` is private; an admin sees the office; a signed-in visitor gets **404** (not 403) and no Studio link |
+| `e2e/reconstruction.spec.ts` | The Reconstruction tab decodes a Draco-compressed scan through `GLTFLoader` (which needs a decoder `model-viewer` gets for free), switches all three material states, and fetches the decoder from our own origin |
 
 The a11y spec exists because the in-app browser used for the Week 5 audit never
 takes OS focus, so `:focus` could not be exercised there. Chromium under
@@ -95,6 +96,8 @@ keeps the run honest and still finishes in about 15 seconds. Set
   renderer for every client island; the browser suite covers the same islands
   with less machinery.
 - **No AR, WebGL or gyroscope tests.** Those need the Android handset, and are
-  the one thing still recorded as a manual pass in the plan.
+  the one thing still recorded as a manual pass in the plan. The reconstruction
+  tab is the exception: it runs on a plain canvas, so the spec asserts it
+  renders rather than trusting that it does.
 - **No Lighthouse budget in CI.** Performance is measured by hand and written
   into `docs/PERF-NOTES.md` (Week 5).

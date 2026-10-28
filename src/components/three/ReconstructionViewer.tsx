@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 import type { MaterialMode } from "@/types/exhibit";
@@ -108,7 +109,15 @@ export default function ReconstructionViewer({ src, alt, mode }: ReconstructionV
         });
       };
 
+      // The GLBs ship Draco-compressed (16.5 MB of scans became 1.7 MB), so the
+      // loader needs a decoder. It is served from our own origin rather than a
+      // CDN: the demo has to work on a venue network. The 188 KB wasm is only
+      // fetched when this tab is opened, never on the exhibit's first paint.
+      const draco = new DRACOLoader();
+      draco.setDecoderPath("/draco/");
+
       const loader = new GLTFLoader();
+      loader.setDRACOLoader(draco);
       loader.load(
         src,
         (gltf) => {
@@ -193,6 +202,7 @@ export default function ReconstructionViewer({ src, alt, mode }: ReconstructionV
 
         clay.dispose();
         wire.dispose();
+        draco.dispose();
         renderer.dispose();
         if (renderer.domElement.parentNode === mount) mount.removeChild(renderer.domElement);
       };
