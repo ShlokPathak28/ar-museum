@@ -16,9 +16,11 @@
     "postinstall": "prisma generate",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
+    "db:deploy": "node --env-file-if-exists=.env.remote scripts/db-deploy.mjs",
     "db:push": "prisma db push",
     "db:seed": "prisma db seed",
     "db:admin": "node scripts/make-admin.mjs",
+    "db:admin:remote": "node --env-file-if-exists=.env.remote scripts/make-admin.mjs",
     "db:studio": "node scripts/db-studio.mjs",
     "print:cards": "node scripts/print-cards.mjs"
   },

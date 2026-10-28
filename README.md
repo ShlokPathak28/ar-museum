@@ -6,10 +6,11 @@ states, an **AR** mode that places the object in your room, and a **360°** walk
 through the gallery. Admins run the museum from `/studio`; visitors collect
 stamps and leave reviews.
 
-**Status:** Week 5 in progress. Accessibility, tests and the performance pass are
-done; deployment and the demo kit are the remaining steps. Admins can add a 3D
-model to an exhibit and manage visitor accounts from the Studio, without a
-redeploy.
+**Status:** Week 5. Accessibility, tests, the performance pass, model upload,
+people management and the deploy are done — the site runs at
+**https://ar-museum-delta.vercel.app**. The demo recording and two rehearsals
+are what remain. Admins can add a 3D model to an exhibit and manage visitor
+accounts from the Studio, without a redeploy.
 **Full plan and progress log:** [docs/PLAN.md](docs/PLAN.md)
 
 ---
@@ -20,7 +21,7 @@ redeploy.
 |---|---|
 | Framework | Next.js 16 (App Router) · React 19 · TypeScript |
 | Styling | Tailwind CSS 4 (`@theme` tokens in `src/app/globals.css`) |
-| Database | SQLite via Prisma 7 (libSQL driver) → Postgres for deploy |
+| Database | SQLite via Prisma 7 (libSQL driver); hosted libSQL (Turso) in production |
 | Validation | Zod 4, shared by forms and Server Actions |
 | 3D / AR | `@google/model-viewer`; `three` for the reconstruction and 360° room |
 | Auth | Better Auth 1.7 (email + password, roles) |
@@ -30,7 +31,8 @@ redeploy.
 ## Demo accounts
 
 These exist in the local `prisma/dev.db`, **not** in the seed — a fresh clone
-starts with no users.
+starts with no users. The deployed site has its own `admin@dharohar.test` with
+the same password, created once by hand.
 
 | Role | Email | Password |
 |---|---|---|
@@ -38,9 +40,10 @@ starts with no users.
 | Visitor | `visitor@dharohar.test` | `museum-pass-2026` |
 
 Register a new account at `/register`; promote it with
-`npm run db:admin -- someone@example.com`, or from `/studio/users` once you are
-signed in as an admin. The script only changes `role` — passwords are hashed by
-Better Auth and never touched by our code.
+`npm run db:admin -- someone@example.com` (add `:remote` for the deployed
+database), or from `/studio/users` once you are signed in as an admin. The
+script only changes `role` — passwords are hashed by Better Auth and never
+touched by our code.
 
 ## Getting started
 
@@ -164,16 +167,60 @@ On a machine where Playwright's browser download is blocked, set
 
 ## Deployment
 
-The target is one Vercel project plus hosted Postgres. The code changes are
-configuration, not features:
+Live at **https://ar-museum-delta.vercel.app** — one Vercel project and one
+hosted libSQL database (Turso). The database is the only external service.
 
-1. Point `DATABASE_URL` at Postgres and switch the Prisma provider.
-2. Set `NEXT_PUBLIC_SITE_URL` and `BETTER_AUTH_URL` to the HTTPS origin.
-3. Run migrations and the seed on the new database.
-4. HTTPS is required for WebXR, the camera and the gyroscope.
+**Why libSQL and not Postgres.** The schema is `provider = "sqlite"`, and libSQL
+is SQLite over the wire, so production runs the dialect the app was written
+against. Postgres would have meant a provider switch, a second driver adapter
+and rebuilding four migrations, for no user-visible gain on a six-object museum.
+`docs/ARCHITECTURE.md` records the trade and what it costs.
+
+Environment variables on Vercel (Production):
+
+| Name | Value |
+|---|---|
+| `DATABASE_URL` | `libsql://<db>-<org>.turso.io` |
+| `DATABASE_AUTH_TOKEN` | a Turso database token (read & write) |
+| `BETTER_AUTH_SECRET` | 32 random bytes, base64 |
+| `NEXT_PUBLIC_SITE_URL` | `https://ar-museum-delta.vercel.app` |
+| `BETTER_AUTH_URL` | the same origin |
+
+The database pair is what differs by environment: on Vercel it points at Turso,
+and locally it lives in `.env.remote` (git-ignored), **not** `.env`. `next dev`
+and the Playwright suite read `.env` and must keep writing to `prisma/dev.db`.
+
+**Schema and seed.** Prisma's migration engine only speaks `file:` SQLite, so a
+`libsql://` URL fails with P1013. `npm run db:deploy` applies the same
+`prisma/migrations/*.sql` over the libSQL HTTP API and records them in
+`_prisma_migrations`; it refuses a `file:` URL and a database that already has
+tables but no history. Seed against the same database with
+`npx tsx prisma/seed.ts`.
+
+**The first admin.** Register on the deployed site, then
+`npm run db:admin:remote -- you@example.com`. After that, `/studio/users` does it.
+
+**Deploying.** `npx vercel deploy --prod`, from the repo if Vercel recognises the
+git author, otherwise from a copy without `.git`. Two things bit us and are worth
+knowing:
+
+- Vercel blocks a deployment whose git author is not a member of the team
+  (`TEAM_ACCESS_REQUIRED`) when the project has no GitHub connection. Either
+  connect the repo (`vercel git connect`) or deploy from a copy without `.git`.
+- New projects ship with Deployment Protection on, which puts a Vercel login in
+  front of every page. Turn off `ssoProtection` in the project settings or the
+  demo is invisible to visitors.
+
+**Printable cards.** The cards encode whichever origin generated them, so
+generate them from the live URL (set `PLAYWRIGHT_CHANNEL=chrome` first if
+Playwright's own browser isn't installed):
+
+```bash
+npm run print:cards -- https://ar-museum-delta.vercel.app
+```
 
 `docs/ARCHITECTURE.md` has the full deployment shape and the SQLite → Postgres
-column differences (enums, scalar lists).
+column differences, should the museum ever outgrow this.
 
 ## Troubleshooting
 
@@ -247,7 +294,7 @@ exhibit page's LCP. `docs/PERF-NOTES.md` has the trace.
 - **Week 2** — auth, `/scan`, passport, reviews ✅
 - **Week 3** — AR mode, 360° room viewer, fallbacks ✅
 - **Week 4** — Studio CRUD, publish/revalidate, review moderation ✅
-- **Week 5** — accessibility ✅, tests ✅, performance ✅, Studio model upload ✅, people management ✅, deploy + demo kit ⏳
+- **Week 5** — accessibility ✅, tests ✅, performance ✅, Studio model upload ✅, people management ✅, deploy ✅ (Turso + Vercel), demo kit ⏳
 
 ## Credits
 

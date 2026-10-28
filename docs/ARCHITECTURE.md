@@ -22,8 +22,8 @@ phone (QR → AR → 360°)        laptop (browse, Studio)
         └─ client islands: 3D, 360°, scanner, forms
                        │
                        ▼
-        Prisma 7 → libSQL → prisma/dev.db
-        (Postgres for deployment; see "Deployment shape")
+        Prisma 7 → libSQL → prisma/dev.db locally
+        Turso (hosted libSQL) when deployed
 ```
 
 ## Routes and rendering
@@ -79,11 +79,17 @@ visitor did nothing wrong, and a dead card should still land somewhere useful.
 
 ## Data layer
 
-Prisma 7 with the libSQL driver adapter (`src/lib/db.ts`). The provider is still
-`sqlite` and `DATABASE_URL` is still a file, but Prisma 7 compiles queries in
+Prisma 7 with the libSQL driver adapter (`src/lib/db.ts`). The provider is
+`sqlite` and locally `DATABASE_URL` is a file, but Prisma 7 compiles queries in
 TypeScript instead of shipping a Rust engine, so a driver is required.
 `@prisma/adapter-libsql` ships prebuilt binaries and needs no Visual Studio build
 tools on Windows.
+
+The same adapter and the same schema point at Turso in production: libSQL is
+SQLite over the wire, so `DATABASE_URL` becomes a `libsql://` URL and
+`DATABASE_AUTH_TOKEN` is passed to the adapter when it is set. Nothing else in
+the data layer changes, and `npm run db:admin` works against either because it
+takes the token too.
 
 SQLite has no native enums and no scalar lists, so:
 
@@ -245,23 +251,43 @@ together.
 
 ## Deployment shape
 
-The target is one Vercel project plus a hosted Postgres (Neon or Prisma
-Postgres). The pieces that change:
+One Vercel project, one Turso database, no other services.
 
-1. `DATABASE_URL` → Postgres; Prisma provider `sqlite` → `postgresql`; the
-   string columns that stand in for enums/arrays become real ones.
-2. `NEXT_PUBLIC_SITE_URL` and `BETTER_AUTH_URL` → the deployed HTTPS origin.
-   Better Auth's `trustedOrigins` derives from `NEXT_PUBLIC_SITE_URL`, so a
-   wrong value breaks sign-in with an "Invalid origin" log.
-3. `npm run db:migrate` (or `prisma migrate deploy`) + a seed on the new
-   database.
-4. HTTPS is not optional: WebXR and the camera only exist in a secure context.
-5. Model uploads need no extra service — the bytes are rows. Vercel's 4.5 MB
-   function body cap is why the Studio cap is 4 MB; Blob/R2 is the upgrade path
-   if scans outgrow it.
+**The database is hosted libSQL, not Postgres.** The plan said Postgres, and this
+is the one place the build went a different way. The schema is
+`provider = "sqlite"`: no native enums, `facts` as a JSON string, `tags`
+comma-separated, uniqueness on string ids. Postgres would have meant switching
+the provider, adding `@prisma/adapter-pg`, rebuilding the four migrations and
+re-testing every query — days of risk before a demo, for a museum with six
+objects. Turso keeps the dialect, schema, migrations and adapter identical;
+production differs from development by one URL and one token. The cost is a
+vendor: moving to Postgres later is still the provider change described above,
+and nothing outside `src/lib/db.ts` assumes libSQL.
 
-Nothing in the app depends on the local filesystem at runtime except
-`prisma/dev.db`, so the move is configuration, not code.
+**Migrations do not go through Prisma.** Prisma's migration engine only speaks
+`file:` SQLite; a `libsql://` URL fails with P1013, and Turso's CLI needs WSL on
+Windows. `scripts/db-deploy.mjs` sends the generated `prisma/migrations/*.sql`
+over the libSQL HTTP API, one transaction per migration, and writes the rows
+Prisma would have written to `_prisma_migrations`. It refuses a `file:` URL (so
+it cannot touch the dev database) and a database that has tables but no history
+(so it cannot half-apply).
+
+**Secrets stay out of the dev environment.** `DATABASE_URL` in `.env` remains the
+local file; the Turso URL and token live in `.env.remote`, which only `db:deploy`
+and `db:admin:remote` load. Without that split, `next dev` and the Playwright
+suite would have written to production — the people spec inserts and deletes
+accounts.
+
+**Two Vercel behaviours worth knowing.** A deployment whose git author is not a
+team member is refused with `TEAM_ACCESS_REQUIRED` when the project has no
+GitHub connection; deploy from a tree without `.git`, or connect the repo. And a
+new project starts with Deployment Protection on, which puts Vercel's login in
+front of the whole site — `ssoProtection` has to be cleared before anyone can
+visit.
+
+**What still needs a service:** nothing. Model uploads are rows, images live in
+`public/`, and the QR cards are generated from whichever origin is live. HTTPS is
+not optional — WebXR and the camera only exist in a secure context.
 
 ## Deviations from the plan, stated
 
@@ -271,6 +297,6 @@ Nothing in the app depends on the local filesystem at runtime except
 | Zustand + RTK for passport/studio state | `useState`, `useTransition`, `useOptimistic`, cookies + DB | no cross-route client state survived the cut; the passport is server data |
 | react-three-fiber + drei for 360° | plain `three` | the viewer is one sphere and a camera; r3f added a dependency for no pixels |
 | Cloudinary uploads | a Studio upload stored as bytes in Postgres | no new dependency or token; 4 MB cap fits the function limit and the model sizes |
-| Postgres on Neon | SQLite via libSQL locally | deployment is the remaining step; the adapter is the only change |
+| Postgres on Neon | libSQL, a local file in dev and Turso in production | one dialect, one schema, one adapter; Postgres meant a provider switch, a new adapter and four rebuilt migrations before a demo |
 | `@modal` intercepting quick-look | full page navigation | the page is fast enough that a modal added complexity without a win |
 | Tours builder | schema + seed only, no Studio UI | cut order put tours after the admin CRUD pass |

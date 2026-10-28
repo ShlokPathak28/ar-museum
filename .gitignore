@@ -63,3 +63,6 @@ prisma/*.db-journal
 /certs/
 /public/dev-ca.crt
 
+# the marker cards encode whichever origin generated them, so a committed PDF
+# would be a card that only scans on one machine. Run `npm run print:cards`.
+/docs/marker-cards.pdf

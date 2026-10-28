@@ -3,8 +3,11 @@ import "dotenv/config";
 import { PrismaLibSql } from "@prisma/adapter-libsql";
 import { PrismaClient } from "../src/generated/prisma/client";
 
+const url = process.env.DATABASE_URL ?? "file:./prisma/dev.db";
+const authToken = process.env.DATABASE_AUTH_TOKEN;
+
 const prisma = new PrismaClient({
-  adapter: new PrismaLibSql({ url: process.env.DATABASE_URL ?? "file:./prisma/dev.db" }),
+  adapter: new PrismaLibSql(authToken ? { url, authToken } : { url }),
 });
 
 const ROOMS = [

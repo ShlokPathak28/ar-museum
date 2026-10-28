@@ -12,7 +12,8 @@
 import { createClient } from "@libsql/client";
 
 const url = process.env.DATABASE_URL ?? "file:./prisma/dev.db";
-const db = createClient({ url });
+const authToken = process.env.DATABASE_AUTH_TOKEN;
+const db = createClient(authToken ? { url, authToken } : { url });
 
 const [email, flag] = process.argv.slice(2);
 

@@ -19,7 +19,14 @@ function createClient() {
     );
   }
 
-  return new PrismaClient({ adapter: new PrismaLibSql({ url }) });
+  // A local `file:` database needs nothing else. Hosted libSQL (Turso) needs a
+  // token, which we pass only when it is configured — never as an empty string,
+  // because Turso treats a present-but-empty token as a bad credential.
+  const authToken = process.env.DATABASE_AUTH_TOKEN;
+
+  return new PrismaClient({
+    adapter: new PrismaLibSql(authToken ? { url, authToken } : { url }),
+  });
 }
 
 export const prisma = globalForPrisma.prisma ?? createClient();

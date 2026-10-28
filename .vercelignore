@@ -1,0 +1,10 @@
+# Not part of the deployment. Everything here is either generated, local-only,
+# or a scratch directory; keeping it out of the upload shortens builds.
+.openclaude/
+brag-output-*/
+temp/
+test-results/
+playwright-report/
+certs/
+prisma/dev.db
+prisma/dev.db-journal
