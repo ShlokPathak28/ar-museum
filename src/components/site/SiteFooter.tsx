@@ -50,6 +50,9 @@ export default function SiteFooter() {
               <Link href="/markers" className="transition-colors hover:text-chalk">
                 Printable cards
               </Link>
+              <Link href="/credits" className="transition-colors hover:text-chalk">
+                Credits
+              </Link>
             </div>
           </div>
         </div>

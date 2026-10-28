@@ -580,6 +580,16 @@ what changed from the plan, and what the next week inherits.
 - **Next 16 deprecates `Image priority`;** all four uses moved to `loading="eager"` + `fetchPriority="high"` and were confirmed through CDP (`initialPriority: Low → High`).
 - **Not verified:** real-device numbers (the phone pass is still outstanding) and CrUX/field data, which does not exist for a local build. Scores on this laptop move a tier or two between runs; the ranges in `PERF-NOTES` are the honest version.
 
+### Week 5 — documentation, credits and print kit (28 Oct) — closed
+
+- **`/credits` is a real page now, not a promise.** `src/lib/credits.ts` holds the register — four 3D files, two panoramas, six photographs and nineteen software projects, each with a source link and a licence. The page states the stand-in rule first, then the register, then the three mechanical changes made to the assets (padded plates, 3072 WebP panoramas, Draco/WebP models). It is linked from the footer and the sitemap. Lighthouse on the production build: **97 / 100 / 100 / 100**, LCP 2.0 s, 325 KiB.
+- **`docs/ARCHITECTURE.md` is the as-built version**, not a restatement of the plan: the actual route/rendering table, the QR path with its origin and cookie decisions, the two authorisation gates, Server Actions vs route handlers, the 3D/AR/360 pipeline, and a table of every deviation (TanStack Query, Zustand/RTK, r3f, Cloudinary, Postgres, the modal, the tours builder).
+- **`docs/CO-MATRIX.md`** maps INT252 CO1–CO6 and every INT257 area to a file and a sentence to say, including the two caveats (Next instead of Vite/react-router; three cut features). **`docs/STATE-DECISIONS.md`** is the state inventory plus the "why not Redux everywhere" and "why not `useEffect` + `fetch`" arguments, with the one justified fetch. **`docs/DEMO-SCRIPT.md`** times the seven beats to 3:00, with a pre-flight list, exact labels, fallbacks and a reset command.
+- **The print kit already existed and was checked rather than rebuilt.** `/markers` prints A6 cards (`@page size: A6`, chrome hidden, `break-inside: avoid`), and each QR encodes the `Host` the page was opened on, so a card printed from the LAN address works from the phone. A PDF is deliberately **not** committed: a file generated now would encode `localhost`. Generate it from the deployed origin after the Vercel step.
+- **README rewritten and setup checked:** five commands from clone to running site, the demo accounts with the caveat that a fresh clone has none, the phone/HTTPS loop, testing, the Draco gotcha, and a docs index.
+- **One test changed for the right reason.** The skip-link spec asserted `#main` in the URL. After hydration Next's client router handles the fragment and normalises the URL away, so the assertion passed only when the keypress beat hydration — a race, not a behaviour. The spec now asserts the focus move, which is the actual contract; the suite is **20 tests** and passes with four workers.
+- **Not done:** the deploy (no credentials or database in the environment), the 3-minute recording, and the two rehearsals. Those are the remaining Week 5 items.
+
 ### Week 3–4 — planned
 
 #### Stretch — themed room pages

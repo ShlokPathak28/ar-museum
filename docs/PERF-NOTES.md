@@ -20,8 +20,9 @@ observed range, never a single lucky trace.
 | `/rooms` | 89–90 | 2.3 s | 290 ms | 0 | 416 KiB |
 | `/rooms/material-worlds` | 64–86 | 2.0–2.7 s | 470–1,600 ms | 0 | 1,680 KiB |
 | `/exhibits/bidri-hookah-base` | 58–70 | 2.5–2.8 s | 1,150–3,300 ms | 0 | 1,351 KiB |
+| `/credits` | 97 | 2.0 s | 60 ms | 0 | 325 KiB |
 
-Accessibility, best practices and SEO are **100** on all five, in every run.
+Accessibility, best practices and SEO are **100** on all six, in every run.
 
 Start of the week → now (each line has its own lever; the like-for-like tests
 are in the sections below):

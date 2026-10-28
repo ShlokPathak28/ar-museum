@@ -21,7 +21,9 @@ test.describe("keyboard and structure", () => {
     // a node, this re-focuses it instead of sending the key to <body>.
     await skip.press("Enter");
 
-    await expect(page).toHaveURL(/#main$/);
+    // The contract is the focus move, not the hash. Once the client router is
+    // hydrated it handles the fragment itself and normalises the URL, so
+    // `#main` is present before hydration and absent after it — both are fine.
     await expect(page.locator("main#main")).toBeFocused();
   });
 
@@ -33,7 +35,7 @@ test.describe("keyboard and structure", () => {
     await expect(page.getByRole("link", { name: "Skip to content" })).toBeFocused();
   });
 
-  for (const path of ["/", "/exhibits", "/exhibits/bidri-hookah-base", "/rooms", "/rooms/material-worlds", "/scan", "/markers"]) {
+  for (const path of ["/", "/exhibits", "/exhibits/bidri-hookah-base", "/rooms", "/rooms/material-worlds", "/scan", "/markers", "/credits"]) {
     test(`one h1 and a main landmark on ${path}`, async ({ page }) => {
       await page.goto(path);
 

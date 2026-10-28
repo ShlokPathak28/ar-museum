@@ -44,6 +44,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly",
       priority: 0.7,
     },
+    {
+      url: absoluteUrl("/credits"),
+      lastModified: new Date(),
+      changeFrequency: "yearly",
+      priority: 0.3,
+    },
     ...exhibits.map((exhibit) => ({
       url: absoluteUrl(`/exhibits/${exhibit.slug}`),
       lastModified: exhibit.updatedAt,

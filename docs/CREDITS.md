@@ -1,5 +1,8 @@
 # Asset credits
 
+The same register is published at `/credits`, with source links and the software
+stack. This file keeps the reasoning and the report-ready notes.
+
 Dharohar's exhibits are fictional, but the 3D files are real museum scans used as
 **visual stand-ins** until each object is scanned. Every 3D file below is CC0
 (public domain), so it can be redistributed with the project. The photography is
@@ -21,12 +24,14 @@ the site. The room pages say so under the viewer.
 
 | File | Source | Licence |
 | --- | --- | --- |
-| `public/panoramas/material-worlds.jpg` | *Museum of Ethnography* by Oliksiy Yakovlyev — [Poly Haven](https://polyhaven.com/a/museum_of_ethnography) | CC0 |
-| `public/panoramas/everyday-objects.jpg` | *Church Museum* by Dario Barresi — [Poly Haven](https://polyhaven.com/a/church_museum) | CC0 |
+| `public/panoramas/material-worlds.webp` | *Museum of Ethnography* by Oliksiy Yakovlyev — [Poly Haven](https://polyhaven.com/a/museum_of_ethnography) | CC0 |
+| `public/panoramas/everyday-objects.webp` | *Church Museum* by Dario Barresi — [Poly Haven](https://polyhaven.com/a/church_museum) | CC0 |
 
-Both started as 8192×4096 tonemapped JPGs and were resized to 4096×2048 at
-quality 82 (~1.7 MB each) so a phone can decode them without a long wait. The
-object markers are placed by hand on the image, not measured with a laser.
+Both started as 8192×4096 tonemapped JPGs, were resized to 4096×2048 for the
+first build, then re-encoded to **3072×1536 WebP** (743 KB and 690 KB) in the
+week-5 performance pass. 3072 is where the seams and the carved detail still
+hold on a projector; a phone decodes it without a long wait. The object markers
+are placed by hand on the image, not measured with a laser.
 
 ## Exhibit photography
 
@@ -55,6 +60,8 @@ read as one catalogue.
   UI surfaces next to the viewer.
 - The playback stack is `<model-viewer>`: it renders glTF in WebGL and hands the
   same file to ARCore / Quick Look for AR, so one asset serves 3D and AR.
-- Draco-compressed variants exist and are ~6x smaller, but `model-viewer` loads
-  its Draco decoder from a CDN. The uncompressed files are used so the demo works
-  offline.
+- The GLBs are Draco-compressed with WebP textures (16.5 MB → 1.7 MB). Both
+  renderers decode them: `model-viewer` bundles its own decoder, and the
+  hand-built `ReconstructionViewer` attaches `DRACOLoader` pointed at
+  `/draco/`. The two decoder files are copied from `three/examples/jsm/libs`
+  rather than fetched from a CDN, so the demo works on a venue network.
