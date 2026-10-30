@@ -15,13 +15,6 @@ export const revalidate = 60;
 
 type Props = { params: Promise<{ slug: string }> };
 
-// Stand-in panoramas are credited per room; when a room is re-shot, update this
-// map together with the file in public/panoramas.
-const PANORAMA_CREDIT: Record<string, string> = {
-  "material-worlds": "Museum of Ethnography by Oliksiy Yakovlyev",
-  "everyday-objects": "Church Museum by Dario Barresi",
-};
-
 export async function generateStaticParams() {
   const rooms = await prisma.room.findMany({ select: { slug: true } });
   return rooms.map((room) => ({ slug: room.slug }));
@@ -84,7 +77,7 @@ export default async function RoomPage({ params }: Props) {
     ];
   });
 
-  const credit = PANORAMA_CREDIT[room.slug];
+  const credit = room.panoramaCredit;
 
   return (
     <>
@@ -108,9 +101,7 @@ export default async function RoomPage({ params }: Props) {
               />
               <p className="mt-3 flex flex-wrap justify-between gap-2 border-t border-ink/10 pt-3 text-[11px] leading-relaxed text-ink-soft">
                 <span>Drag to look. Tap a marker to open the object.</span>
-                <span>
-                  Panorama: {credit ?? "Dharohar"} · Poly Haven · CC0 (stand-in)
-                </span>
+                <span>Panorama: {credit ?? "Dharohar"}</span>
               </p>
             </>
           ) : (

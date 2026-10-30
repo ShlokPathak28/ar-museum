@@ -24,11 +24,15 @@ export default async function RoomsPage() {
     },
   });
 
+  const floors = new Set(rooms.map((room) => room.floor)).size;
+
   return (
     <>
       <SiteHeader />
       <PageMasthead
-        eyebrow={`${rooms.length} rooms · two floors`}
+        eyebrow={`${rooms.length} ${rooms.length === 1 ? "room" : "rooms"} · ${floors} ${
+          floors === 1 ? "floor" : "floors"
+        }`}
         title="The rooms"
         lede="Each room has a 360° view you can steer by hand or by moving your phone. The markers on the panorama open the object they sit beside."
       />

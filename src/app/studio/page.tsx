@@ -11,6 +11,7 @@ export const metadata: Metadata = {
 };
 
 const STATS = [
+  { key: "rooms", label: "Rooms", href: "/studio/rooms" },
   { key: "published", label: "Published", href: "/studio/exhibits" },
   { key: "drafts", label: "Drafts", href: "/studio/exhibits?status=DRAFT" },
   { key: "reviews", label: "Visible reviews", href: "/studio/reviews" },
@@ -44,6 +45,7 @@ export default async function StudioPage() {
     ]);
 
   const counts = {
+    rooms,
     published,
     drafts,
     reviews: visibleReviews,
@@ -74,6 +76,12 @@ export default async function StudioPage() {
             Manage exhibits
           </Link>
           <Link
+            href="/studio/rooms"
+            className="border border-ink/20 px-4 py-2 text-sm transition-colors hover:border-ink/50"
+          >
+            Manage rooms
+          </Link>
+          <Link
             href="/studio/users"
             className="border border-ink/20 px-4 py-2 text-sm transition-colors hover:border-ink/50"
           >
@@ -82,7 +90,7 @@ export default async function StudioPage() {
         </div>
       </div>
 
-      <dl className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <dl className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         {STATS.map((stat) => (
           <div key={stat.key} className="border border-ink/12 bg-paper p-4">
             <dt className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-soft">

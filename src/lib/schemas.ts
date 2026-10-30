@@ -30,13 +30,15 @@ const yearField = z
   .trim()
   .refine((value) => value === "" || /^-?\d{1,4}$/.test(value), "Use a year, e.g. 1850 or -200.");
 
+const slugField = z
+  .string()
+  .trim()
+  .min(3, "Use at least 3 characters.")
+  .max(80, "Keep the slug under 80 characters.")
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Lowercase letters, numbers and single hyphens only.");
+
 export const exhibitAdminSchema = z.object({
-  slug: z
-    .string()
-    .trim()
-    .min(3, "Use at least 3 characters.")
-    .max(80, "Keep the slug under 80 characters.")
-    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Lowercase letters, numbers and single hyphens only."),
+  slug: slugField,
   code: z
     .string()
     .trim()
@@ -72,4 +74,32 @@ export const exhibitAdminSchema = z.object({
 });
 
 export type ExhibitAdminValues = z.infer<typeof exhibitAdminSchema>;
+
+/**
+ * The room form. `panoramaUrl` is either blank, a path inside `public/`, or the
+ * `/api/panoramas/<id>` URL an upload produces. Absolute `https://` URLs are
+ * refused on purpose: the room card goes through `next/image`, which only loads
+ * hosts listed in `images.remotePatterns`, so an external URL would save and
+ * then render as a broken image.
+ */
+export const roomAdminSchema = z.object({
+  slug: slugField,
+  name: z.string().trim().min(2, "Give the room a name.").max(80, "Keep the name under 80 characters."),
+  floor: z.string().trim().min(2, "Name the floor.").max(60, "Keep the floor under 60 characters."),
+  intro: z.string().trim().max(400, "Keep the introduction under 400 characters."),
+  panoramaUrl: z
+    .string()
+    .trim()
+    .max(500, "Keep the path under 500 characters.")
+    .refine(
+      (value) => value === "" || (value.startsWith("/") && !value.startsWith("//")),
+      "Use a path inside /public (starting with /), or upload a panorama.",
+    ),
+  panoramaCredit: z
+    .string()
+    .trim()
+    .max(200, "Keep the credit under 200 characters."),
+});
+
+export type RoomAdminValues = z.infer<typeof roomAdminSchema>;
 

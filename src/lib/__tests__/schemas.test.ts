@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { exhibitAdminSchema, reviewSchema } from "@/lib/schemas";
+import { exhibitAdminSchema, reviewSchema, roomAdminSchema } from "@/lib/schemas";
 
 /**
  * These schemas are the contract between a form and a Server Action. The
@@ -122,5 +122,65 @@ describe("exhibitAdminSchema", () => {
 
   it("only accepts the two statuses the museum uses", () => {
     expect(exhibitAdminSchema.safeParse({ ...validExhibit, status: "ARCHIVED" }).success).toBe(false);
+  });
+});
+
+const validRoom = {
+  slug: "textile-room",
+  name: "Textile Room",
+  floor: "Second floor",
+  intro: "Cloth, dye and the hands that worked them.",
+  panoramaUrl: "",
+  panoramaCredit: "",
+} as const;
+
+describe("roomAdminSchema", () => {
+  it("accepts a room with no panorama yet", () => {
+    expect(roomAdminSchema.safeParse(validRoom).success).toBe(true);
+  });
+
+  it("accepts both kinds of panorama path the Studio produces", () => {
+    expect(
+      roomAdminSchema.safeParse({ ...validRoom, panoramaUrl: "/panoramas/textiles.webp" }).success,
+    ).toBe(true);
+    expect(
+      roomAdminSchema.safeParse({ ...validRoom, panoramaUrl: "/api/panoramas/clx123" }).success,
+    ).toBe(true);
+  });
+
+  it.each(["https://example.com/pano.jpg", "panoramas/textiles.webp", "//example.com/x.webp"])(
+    "rejects the panorama source %s",
+    (panoramaUrl) => {
+      const result = roomAdminSchema.safeParse({ ...validRoom, panoramaUrl });
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0]?.message).toContain("upload a panorama");
+      }
+    },
+  );
+
+  it("applies the same slug rules as an exhibit", () => {
+    expect(roomAdminSchema.safeParse({ ...validRoom, slug: "Textile-Room" }).success).toBe(false);
+    expect(roomAdminSchema.safeParse({ ...validRoom, slug: "ab" }).success).toBe(false);
+    expect(roomAdminSchema.safeParse({ ...validRoom, slug: "textile_room" }).success).toBe(false);
+  });
+
+  it("requires a name and a floor", () => {
+    const result = roomAdminSchema.safeParse({ ...validRoom, name: " ", floor: "" });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const fields = result.error.issues.map((issue) => issue.path[0]);
+      expect(fields).toContain("name");
+      expect(fields).toContain("floor");
+    }
+  });
+
+  it("keeps the introduction and the credit inside their limits", () => {
+    expect(roomAdminSchema.safeParse({ ...validRoom, intro: "x".repeat(401) }).success).toBe(false);
+    expect(
+      roomAdminSchema.safeParse({ ...validRoom, panoramaCredit: "x".repeat(201) }).success,
+    ).toBe(false);
   });
 });

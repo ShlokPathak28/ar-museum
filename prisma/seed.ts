@@ -18,6 +18,7 @@ const ROOMS = [
     intro:
       "Clay, metal and pigment, side by side. The ground floor follows three materials from the ground they come from to the stories they carry.",
     panoramaUrl: "/panoramas/material-worlds.webp",
+    panoramaCredit: "Museum of Ethnography by Oliksiy Yakovlyev · Poly Haven · CC0 (stand-in)",
   },
   {
     slug: "everyday-objects",
@@ -26,6 +27,7 @@ const ROOMS = [
     intro:
       "The first floor is about use: the things a household reaches for daily, and the small decisions that made them last.",
     panoramaUrl: "/panoramas/everyday-objects.webp",
+    panoramaCredit: "Church Museum by Dario Barresi · Poly Haven · CC0 (stand-in)",
   },
 ];
 

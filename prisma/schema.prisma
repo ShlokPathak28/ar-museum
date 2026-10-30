@@ -1,5 +1,5 @@
 // Dharohar AR — Prisma schema
-// Provider: SQLite (dev) -> Postgres (prod) later.
+// Provider: SQLite locally, hosted libSQL (Turso) in production.
 // Notes for SQLite: no native enums, no scalar lists. Enum-like fields are
 // strings validated by Zod in src/lib/schemas.ts; arrays are JSON text.
 
@@ -17,15 +17,38 @@ datasource db {
 // ScanMethod: QR | MANUAL | AR | VR
 
 model Room {
-  id          String    @id @default(cuid())
-  slug        String    @unique
-  name        String
-  floor       String
-  intro       String? // one or two sentences shown above the 360° viewer
-  panoramaUrl String?
-  exhibits    Exhibit[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id             String    @id @default(cuid())
+  slug           String    @unique
+  name           String
+  floor          String
+  intro          String? // one or two sentences shown above the 360° viewer
+  panoramaUrl    String? // /panoramas/<file> in public, or /api/panoramas/<id>
+  panoramaCredit String? // the licence line under the 360° viewer
+  exhibits       Exhibit[]
+  panorama       RoomPanorama?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+/**
+ * A 360° panorama uploaded from the Studio, stored in the database for the same
+ * reason as `ModelAsset`: the deployed filesystem is read-only. A 3072x1536
+ * WebP is about 0.7 MB, comfortably under the 4 MB cap, so a room's whole
+ * picture can be replaced from the browser instead of a redeploy.
+ */
+model RoomPanorama {
+  id        String   @id @default(cuid())
+  filename  String
+  mimeType  String   @default("image/webp")
+  size      Int
+  sha256    String
+  width     Int
+  height    Int
+  bytes     Bytes
+  createdAt DateTime @default(now())
+
+  roomId String @unique
+  room   Room   @relation(fields: [roomId], references: [id], onDelete: Cascade)
 }
 
 model Exhibit {

@@ -41,6 +41,7 @@ phone (QR → AR → 360°)        laptop (browse, Studio)
 | `/x/[code]` | route handler, `force-dynamic` | redirect + scan/stamp write + device cookie |
 | `/api/qr/[code]` | route handler | PNG for a printed card |
 | `/api/models/[id]` | route handler, `force-dynamic`, immutable cache | the bytes of a model uploaded from the Studio |
+| `/api/panoramas/[id]` | route handler, `force-dynamic`, immutable cache | the bytes of a room panorama uploaded from the Studio |
 | `/api/v1/reviews/mine` | route handler, dynamic | the one read an ISR page cannot do for itself |
 | `/api/auth/[...all]` | Better Auth handler | sessions |
 | `/credits`, `/markers` | static / dynamic | credits are content; cards encode the host they were printed from |
@@ -112,6 +113,24 @@ The bytes are immutable by construction: replacing a model inserts a new row
 with a new id in the same transaction that swaps `Exhibit.modelUrl`, then deletes
 the old row. That is what makes `cache-control: immutable` honest. Clearing the
 field and saving deletes the row, so a detached scan does not linger.
+
+**Room panoramas follow the same shape.** `RoomPanorama` holds one image per
+room (filename, mime type, size, sha256, the pixel size and the bytes), served by
+`/api/panoramas/[id]` with the same immutable cache. A 3072×1536 WebP is about
+0.7 MB, so a room's 360° view can be replaced from the browser instead of a
+redeploy into `public/`. `src/lib/panorama-upload.ts` reads the size out of the
+JPEG/WebP header and refuses anything that is not 2:1 — a normal photograph
+wrapped on the sphere reads as a smear, and that is cheaper to catch at upload
+than on the page. `Room.panoramaUrl` still accepts a `/panoramas/...` path, so the
+seeded stand-ins keep working without a row.
+
+**Rooms are editable from the Studio, markers are not.** `Room` grew
+`panoramaCredit` (the licence line under the viewer, which used to be a code map
+keyed by slug) and the Studio can create, rename and delete rooms and move
+objects between them. Marker bearings still live in `src/lib/room-markers.ts`:
+they are hand-picked against a specific panorama, and a new room renders without
+pins rather than with wrong ones. Moving them into the database is the next step
+if rooms become a routine edit.
 
 ## Auth and authorisation
 
@@ -285,9 +304,10 @@ new project starts with Deployment Protection on, which puts Vercel's login in
 front of the whole site — `ssoProtection` has to be cleared before anyone can
 visit.
 
-**What still needs a service:** nothing. Model uploads are rows, images live in
-`public/`, and the QR cards are generated from whichever origin is live. HTTPS is
-not optional — WebXR and the camera only exist in a secure context.
+**What still needs a service:** nothing. Model uploads and room panoramas are
+rows, the seeded images live in `public/`, and the QR cards are generated from
+whichever origin is live. HTTPS is not optional — WebXR and the camera only exist
+in a secure context.
 
 ## Deviations from the plan, stated
 

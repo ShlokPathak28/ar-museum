@@ -7,10 +7,10 @@ through the gallery. Admins run the museum from `/studio`; visitors collect
 stamps and leave reviews.
 
 **Status:** Week 5. Accessibility, tests, the performance pass, model upload,
-people management and the deploy are done — the site runs at
-**https://ar-museum-delta.vercel.app**. The demo recording and two rehearsals
-are what remain. Admins can add a 3D model to an exhibit and manage visitor
-accounts from the Studio, without a redeploy.
+rooms with 360° panoramas, people management and the deploy are done — the site
+runs at **https://ar-museum-delta.vercel.app**. The demo recording and two
+rehearsals are what remain. Admins can add a 3D model, create a room and upload
+its panorama, and manage visitor accounts from the Studio, without a redeploy.
 **Full plan and progress log:** [docs/PLAN.md](docs/PLAN.md)
 
 ---
@@ -113,6 +113,32 @@ on the public page as soon as the upload finishes. There is no redeploy.
 - Object storage (Vercel Blob, R2) is the documented upgrade path when files
   outgrow 4 MB; see `docs/ARCHITECTURE.md`.
 
+### Adding a room from the Studio
+
+`/studio/rooms` lists every room with its floor, object count and whether it has
+a 360° view. **New room** takes a name, slug, floor and introduction, then the
+room's own page holds the rest:
+
+- **Panorama.** Upload an equirectangular image — twice as wide as it is tall,
+  3072×1536 WebP is the house size — or point at a file in `public/panoramas/`.
+  An upload is stored as a row, served from `/api/panoramas/<id>` and live as
+  soon as it finishes, like a model. The server checks the header and the 2:1
+  shape, so a normal photograph is refused instead of smeared around the sphere.
+- **Credit.** The line under the viewer, editable per room.
+- **Objects.** The room page lists what is in the room and what is elsewhere in
+  the museum. Tick objects and **Move into this room**, or use the **Move to…**
+  select on a row to send one away. `Exhibit.roomId` is required, so an object
+  leaves a room by moving to another one.
+- **Deleting.** A room can only be deleted once it is empty, and never if it is
+  the last one — `Exhibit.roomId` cascades, so deleting a full room would take
+  its objects, reviews and stamps with it. Both rules are enforced in the action,
+  not just hidden in the UI.
+
+New rooms appear on `/rooms`, in the sitemap and in every exhibit's Room
+dropdown immediately; no redeploy. Panorama markers are still picked in
+`src/lib/room-markers.ts`, so a brand-new room shows its 360° view without pins
+until that map is updated.
+
 ### Managing people
 
 `/studio/users` lists every account with its role, join date and activity, and
@@ -132,10 +158,10 @@ anyone can reach `/studio/users`.
 
 ```
 prisma/
-  schema.prisma      15 models: rooms, exhibits, hotspots, media, tours,
+  schema.prisma      16 models: rooms, exhibits, hotspots, media, tours,
                      users, sessions, reviews, scans, stamps, feedback,
-                     uploaded model assets
-  migrations/        four migrations
+                     uploaded model assets, room panoramas
+  migrations/        six migrations
   seed.ts            development data
   dev.db             local SQLite database (git-ignored)
 public/
@@ -294,7 +320,7 @@ exhibit page's LCP. `docs/PERF-NOTES.md` has the trace.
 - **Week 2** — auth, `/scan`, passport, reviews ✅
 - **Week 3** — AR mode, 360° room viewer, fallbacks ✅
 - **Week 4** — Studio CRUD, publish/revalidate, review moderation ✅
-- **Week 5** — accessibility ✅, tests ✅, performance ✅, Studio model upload ✅, people management ✅, deploy ✅ (Turso + Vercel), demo kit ⏳
+- **Week 5** — accessibility ✅, tests ✅, performance ✅, Studio model upload ✅, rooms + panorama upload ✅, people management ✅, deploy ✅ (Turso + Vercel), demo kit ⏳
 
 ## Credits
 
