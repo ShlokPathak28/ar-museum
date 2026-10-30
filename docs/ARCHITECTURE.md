@@ -297,6 +297,18 @@ and `db:admin:remote` load. Without that split, `next dev` and the Playwright
 suite would have written to production — the people spec inserts and deletes
 accounts.
 
+**The functions run next to the database.** `vercel.json` pins `regions: ["bom1"]`
+so a request is served in Mumbai, where the Turso database is
+(`aws-ap-south-1`). This is not cosmetic. A Vercel project defaults to `iad1`
+(Virginia), and the libSQL adapter issues one HTTP round trip per statement —
+`getSession()` is a statement, every page query is a statement, and an
+interactive transaction is one per query plus `BEGIN`/`COMMIT`. Across that
+distance each one cost ~200 ms: a single-query route measured 0.75 s, the Studio
+overview 4 s, and every save or move in the Studio a second or more. From Mumbai
+the same query is a few milliseconds. If the database ever moves, move this with
+it, or the Studio will feel broken again while the public pages look fine (they
+are prerendered and do not touch the database per request).
+
 **Two Vercel behaviours worth knowing.** A deployment whose git author is not a
 team member is refused with `TEAM_ACCESS_REQUIRED` when the project has no
 GitHub connection; deploy from a tree without `.git`, or connect the repo. And a

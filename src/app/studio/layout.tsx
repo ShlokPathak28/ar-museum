@@ -5,18 +5,12 @@ import type { ReactNode } from "react";
 import SignOutButton from "@/components/ui/SignOutButton";
 import { requireAdmin } from "@/lib/admin";
 
+import StudioNav from "./StudioNav";
+
 export const metadata: Metadata = {
   title: { default: "Studio", template: "%s · Studio" },
   robots: { index: false, follow: false },
 };
-
-const NAV = [
-  { href: "/studio", label: "Overview" },
-  { href: "/studio/exhibits", label: "Exhibits" },
-  { href: "/studio/rooms", label: "Rooms" },
-  { href: "/studio/reviews", label: "Reviews" },
-  { href: "/studio/users", label: "People" },
-];
 
 /**
  * Admin chrome. The guard runs here, before any child renders, so a visitor
@@ -50,15 +44,7 @@ export default async function StudioLayout({ children }: { children: ReactNode }
           </div>
 
           <nav aria-label="Studio" className="flex items-center gap-3 sm:gap-6">
-            {NAV.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="relative text-[12px] text-chalk/60 transition-colors after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-brass-light after:transition-[width] after:duration-300 hover:text-chalk hover:after:w-full sm:text-[13px]"
-              >
-                {item.label}
-              </Link>
-            ))}
+            <StudioNav />
             <Link
               href="/"
               className="text-[12px] text-chalk/50 transition-colors hover:text-chalk sm:text-[13px]"
