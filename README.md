@@ -281,6 +281,15 @@ Draco-compressed and the viewer needs `/draco/draco_decoder.wasm`. It ships in
 **`next build` while `next dev` is running.** Don't. It overwrites `.next` and
 Turbopack then serves stale CSS and modules until you delete `.next`.
 
+**The Studio takes a second per click, while the public pages are quick.** The
+public pages are prerendered; the Studio queries the database on every request,
+and libSQL spends one HTTP round trip per statement. Check that the functions
+run in the same region as the database — `vercel.json` pins `regions: ["bom1"]`
+because Turso is in `ap-south-1`. Served from `iad1` (the default) each
+round trip costs ~200 ms and the Studio feels broken. Locally, a first visit to
+a Studio route is Turbopack compiling it; after that it renders in well under a
+second.
+
 ## Notes for the report
 
 **SQLite, but with a driver adapter.** Prisma 7 compiles queries in TypeScript

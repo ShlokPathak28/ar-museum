@@ -640,6 +640,15 @@ what changed from the plan, and what the next week inherits.
 - **Verified:** `npm test` **132/132** (10 files); `npm run test:e2e` **26/26**, including `e2e/studio-rooms.spec.ts` (create room → upload a real 1024×512 JPEG → public room shows it → move Terracotta Horse in → the room lists it and the object names the room → move it back → delete the room), with cleanup that restores any object to Material Worlds first; `tsc`, `eslint --max-warnings=0` and `npm run build` clean, with `/api/panoramas/[id]` and the three Studio room routes in the manifest. Local data checked after the run: 2 rooms, 6 exhibits, 0 panorama rows, TH01 back in Material Worlds.
 - **Deliberately out of scope:** marker bearings stay in `src/lib/room-markers.ts` (a new room renders its panorama without pins), and a room cannot be reordered or themed — the Week 3–4 themed-rooms proposal is still a separate idea.
 
+### Week 5 — Studio latency (30 Oct) — closed
+
+- **The symptom:** every Studio click took a second or more — `/studio` around 4 s, a save or move a second — while the public pages stayed at 0.6 s.
+- **The cause was geography, not queries.** Vercel defaults to `iad1` (Virginia) and Turso lives in `ap-south-1` (Mumbai). The libSQL adapter spends one HTTP round trip per statement, and the Studio is almost all statements: `getSession()` on every page and every action, then the page's own queries, then a transaction where `BEGIN`, each query and `COMMIT` are separate requests. Measured from the deployed function, a route doing a single `findUnique` took **0.75 s**; the same query is ~5 ms with the function next to the database.
+- **The fix:** `vercel.json` pins `regions: ["bom1"]`. Measured after the move: `/studio` 0.55 s, `/studio/rooms` 0.56 s, `/studio/reviews` 0.38 s, `/studio/users` 0.44 s, sign-in 0.74 s (was 3.65 s), and in-browser navigation 0.3–0.8 s. No query was rewritten and no cache was added.
+- **Why not a session cookie cache:** it would remove one round trip that now costs ~5 ms, and it would make a role change take up to its `maxAge` to apply — a bug waiting to happen during a demo. The region was the whole cost.
+- **Click feedback, because the page still waits for the server.** `loading.tsx` in `/studio` only covers entering the section from outside: React keeps an already-revealed Suspense boundary's content during a transition, so an in-Studio navigation never shows it. `StudioNav.tsx` uses `useLinkStatus` instead — the clicked link dims and gains a screen-reader-only "(loading)" within ~25 ms on a slow link — and now underlines the current section with `aria-current="page"`, which the nav previously lacked entirely.
+- **Verified:** `npm test` **132/132**; `npm run test:e2e` **26/26** after the nav change; `tsc` and `eslint --max-warnings=0` clean; deployment `READY` with `regions: bom1` confirmed from the Vercel API; local dev checked separately — a Studio route renders in 89–165 ms once Turbopack has compiled it, so the local slowness was compilation, not queries.
+
 ### Week 3–4 — planned
 
 #### Stretch — themed room pages
