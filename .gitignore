@@ -59,6 +59,10 @@ skills-lock.json
 prisma/*.db
 prisma/*.db-journal
 
+# a staging folder for models fetched from Poly Haven: large binaries that are
+# uploaded through the Studio, not committed. See models-extra/CREDITS.md.
+/models-extra/
+
 # local HTTPS: dev certificate, its key, and the CA cert served to the phone
 /certs/
 /public/dev-ca.crt
