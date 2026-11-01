@@ -2,6 +2,8 @@ import { readFileSync } from "node:fs";
 
 import { expect, test } from "@playwright/test";
 
+import { MAX_MODEL_BYTES } from "@/lib/model-upload";
+
 import { ADMIN, signIn } from "./accounts";
 
 /**
@@ -89,4 +91,54 @@ test("a file that is not a glTF binary is refused before it is stored", async ({
   await page.getByRole("button", { name: /^(Upload|Replace) model$/ }).click();
 
   await expect(page.getByRole("alert").filter({ hasText: "magic bytes" })).toBeVisible();
+});
+
+test("a file over the cap is refused in the browser, before it is sent", async ({ page }) => {
+  await signIn(page, ADMIN);
+  await openDraft(page);
+
+  let uploads = 0;
+  page.on("request", (request) => {
+    if (request.method() === "POST") uploads += 1;
+  });
+
+  const started = Date.now();
+  await page.getByLabel("GLB file").setInputFiles({
+    name: "a-raw-export.glb",
+    mimeType: "model/gltf-binary",
+    buffer: Buffer.alloc(MAX_MODEL_BYTES + 1024),
+  });
+
+  // The answer comes from the name and size alone, so it is immediate.
+  await expect(page.getByRole("alert").filter({ hasText: "The cap is 4.0 MB" })).toBeVisible();
+  expect(Date.now() - started).toBeLessThan(5_000);
+
+  // The rejected file is cleared, not queued: pressing Upload cannot send it.
+  await page.getByRole("button", { name: /^(Upload|Replace) model$/ }).click();
+  await expect(page.getByRole("alert").filter({ hasText: "Choose a .glb file first." })).toBeVisible();
+  expect(uploads).toBe(0);
+});
+
+test("the uploader has its own section, and the list links straight to it", async ({ page }) => {
+  await signIn(page, ADMIN);
+
+  // A missing model is visible from the list, with a link to the uploader.
+  await page.goto("/studio/exhibits?status=DRAFT");
+  const addModel = page.getByRole("link", { name: /3D · none — add a model/ }).first();
+  await expect(addModel).toBeVisible();
+  await addModel.click();
+
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(page.getByRole("group", { name: "The 3D model" })).toBeVisible();
+  await expect(page.getByLabel("GLB file")).toBeVisible();
+  await expect(page).toHaveURL(/#the-3d-model$/);
+
+  // The same section is reachable from the top of the form, without scrolling.
+  const jump = page.getByRole("navigation", { name: "Sections of this form" });
+  await expect(jump.getByRole("link", { name: /The 3D model/ })).toBeVisible();
+
+  // Creating an exhibit explains the two steps rather than showing a picker
+  // that would fail on an id that does not exist yet.
+  await page.goto("/studio/exhibits/new");
+  await expect(page.getByText("The uploader appears after the first save.")).toBeVisible();
 });

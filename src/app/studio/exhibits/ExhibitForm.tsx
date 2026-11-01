@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 
+import { MAX_MODEL_BYTES, formatBytes } from "@/lib/model-upload";
 import { exhibitAdminSchema, type ExhibitAdminValues } from "@/lib/schemas";
 
 import { saveExhibit } from "./actions";
@@ -84,7 +85,9 @@ export default function ExhibitForm({ rooms, exhibit }: Props) {
     }
 
     if (!exhibit) {
-      router.replace(`/studio/exhibits/${result.id}`);
+      // The new exhibit exists but has no model yet: land on the uploader
+      // rather than at the top of a form that looks unchanged.
+      router.replace(`/studio/exhibits/${result.id}#the-3d-model`);
       router.refresh();
       return;
     }
@@ -107,7 +110,31 @@ export default function ExhibitForm({ rooms, exhibit }: Props) {
         </p>
       ) : null}
 
-      <fieldset className="space-y-5">
+      {/* Four screens of form. The model upload is the thing people come here
+          for, and it was the last section — reachable, but only by scrolling
+          past everything else and guessing that "Media and model" held it. */}
+      <nav
+        aria-label="Sections of this form"
+        className="flex flex-wrap items-center gap-x-4 gap-y-2 border-y border-ink/10 py-3 font-mono text-[10px] uppercase tracking-[0.16em]"
+      >
+        <span className="text-ink-soft">Jump to</span>
+        {[
+          { href: "#the-label", label: "The label" },
+          { href: "#the-wall-text", label: "The wall text" },
+          { href: "#the-photograph", label: "The photograph" },
+          { href: "#the-3d-model", label: "The 3D model ↓" },
+        ].map((section) => (
+          <a
+            key={section.href}
+            href={section.href}
+            className="text-oxblood underline decoration-oxblood/30 underline-offset-2 hover:decoration-oxblood"
+          >
+            {section.label}
+          </a>
+        ))}
+      </nav>
+
+      <fieldset id="the-label" className="scroll-mt-28 space-y-5">
         <legend className="font-serif text-2xl tracking-tight">The label</legend>
 
         <div className="grid gap-5 sm:grid-cols-2">
@@ -258,7 +285,7 @@ export default function ExhibitForm({ rooms, exhibit }: Props) {
         </div>
       </fieldset>
 
-      <fieldset className="space-y-5">
+      <fieldset id="the-wall-text" className="scroll-mt-28 space-y-5">
         <legend className="font-serif text-2xl tracking-tight">The wall text</legend>
 
         <div>
@@ -301,8 +328,8 @@ export default function ExhibitForm({ rooms, exhibit }: Props) {
         </div>
       </fieldset>
 
-      <fieldset className="space-y-5">
-        <legend className="font-serif text-2xl tracking-tight">Media and model</legend>
+      <fieldset id="the-photograph" className="scroll-mt-28 space-y-5">
+        <legend className="font-serif text-2xl tracking-tight">The photograph</legend>
 
         <div>
           <label htmlFor="heroImage" className={labelClass}>
@@ -316,50 +343,71 @@ export default function ExhibitForm({ rooms, exhibit }: Props) {
             </p>
           ) : null}
         </div>
+      </fieldset>
 
-        <div className="grid gap-5 sm:grid-cols-2">
-          <div>
-            <label htmlFor="modelUrl" className={labelClass}>
-              GLB model <span className="normal-case tracking-normal">(optional)</span>
-            </label>
-            <input id="modelUrl" {...register("modelUrl")} className={fieldClass} />
-            <p className={hintClass}>
-              A path under /public, an https URL, or an uploaded file — see below.
-            </p>
-            {errors.modelUrl ? (
-              <p role="alert" className="mt-1 text-sm text-oxblood">
-                {errors.modelUrl.message}
-              </p>
-            ) : null}
-          </div>
-
-          <div>
-            <label htmlFor="modelUsdz" className={labelClass}>
-              USDZ for iOS <span className="normal-case tracking-normal">(optional)</span>
-            </label>
-            <input id="modelUsdz" {...register("modelUsdz")} className={fieldClass} />
-            {errors.modelUsdz ? (
-              <p role="alert" className="mt-1 text-sm text-oxblood">
-                {errors.modelUsdz.message}
-              </p>
-            ) : null}
-          </div>
-        </div>
+      {/* The uploader used to sit inside "Media and model", below two URL
+          fields, where it read as a third path input and was easy to miss. It
+          is the usual way a model arrives, so it gets its own section and comes
+          first; the URL fields are the fallback for files already on the site. */}
+      <fieldset id="the-3d-model" className="scroll-mt-28 space-y-5">
+        <legend className="font-serif text-2xl tracking-tight">The 3D model</legend>
 
         {exhibit ? (
-          <ModelUpload
-            exhibitId={exhibit.id}
-            value={modelUrl}
-            initialCredit={exhibit.modelCredit ?? ""}
-            onChange={(url) => setValue("modelUrl", url, { shouldDirty: true })}
-          />
+          <>
+            <p className={hintClass}>
+              Choose a file and it uploads immediately — the model is live before you press
+              Save. Up to {formatBytes(MAX_MODEL_BYTES)}.
+            </p>
+            <ModelUpload
+              exhibitId={exhibit.id}
+              value={modelUrl}
+              initialCredit={exhibit.modelCredit ?? ""}
+              onChange={(url) => setValue("modelUrl", url, { shouldDirty: true })}
+            />
+          </>
         ) : (
-          <p className={hintClass}>
-            Save the exhibit once, then upload its .glb here. A file in{" "}
-            <code className="font-mono text-[11px]">/public/models</code> can be typed in now
-            instead.
+          <p className="border border-dashed border-ink/25 bg-paper px-4 py-3 text-sm leading-relaxed">
+            <span className="font-medium">The uploader appears after the first save.</span>{" "}
+            Creating this exhibit takes you straight back to this section, where you can choose
+            the .glb. A file already in{" "}
+            <code className="font-mono text-[11px]">/public/models</code> can be typed in below
+            now instead.
           </p>
         )}
+
+        <div className="border-t border-ink/10 pt-5">
+          <p className={labelClass}>Or point at a model that already exists</p>
+
+          <div className="mt-3 grid gap-5 sm:grid-cols-2">
+            <div>
+              <label htmlFor="modelUrl" className={labelClass}>
+                GLB model <span className="normal-case tracking-normal">(optional)</span>
+              </label>
+              <input id="modelUrl" {...register("modelUrl")} className={fieldClass} />
+              <p className={hintClass}>
+                A path under /public, an https URL, or{" "}
+                <code className="font-mono text-[11px]">/api/models/…</code> once uploaded above.
+              </p>
+              {errors.modelUrl ? (
+                <p role="alert" className="mt-1 text-sm text-oxblood">
+                  {errors.modelUrl.message}
+                </p>
+              ) : null}
+            </div>
+
+            <div>
+              <label htmlFor="modelUsdz" className={labelClass}>
+                USDZ for iOS <span className="normal-case tracking-normal">(optional)</span>
+              </label>
+              <input id="modelUsdz" {...register("modelUsdz")} className={fieldClass} />
+              {errors.modelUsdz ? (
+                <p role="alert" className="mt-1 text-sm text-oxblood">
+                  {errors.modelUsdz.message}
+                </p>
+              ) : null}
+            </div>
+          </div>
+        </div>
       </fieldset>
 
       <div className="flex flex-wrap items-center gap-4 border-t border-ink/15 pt-6">

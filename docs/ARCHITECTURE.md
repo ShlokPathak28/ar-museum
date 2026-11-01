@@ -114,6 +114,19 @@ with a new id in the same transaction that swaps `Exhibit.modelUrl`, then delete
 the old row. That is what makes `cache-control: immutable` honest. Clearing the
 field and saving deletes the row, so a detached scan does not linger.
 
+**The cap is checked twice, and the first check is the useful one.** A Server
+Action sends the whole file in one request, which cannot be cancelled halfway,
+so `checkModelFile` (name and size, no bytes read) runs the moment a file is
+chosen and refuses the wrong extension or anything over 4 MB before a byte is
+sent. `inspectGlb` calls the same helper on the server, then reads the GLB
+header — the action is a public endpoint, so the form is a convenience, not a
+gate. `next.config.ts` sets `bodySizeLimit` to 4.5 MB, matching Vercel's own
+ceiling: a 4 MB file plus multipart overhead fits, and a larger value could
+never be reached in production. A body Vercel rejects arrives as a thrown
+client error with no readable response, so the client maps it to "the server
+refused the file" rather than blaming the connection — the distinction that
+made a too-big file look like a broken network.
+
 **Room panoramas follow the same shape.** `RoomPanorama` holds one image per
 room (filename, mime type, size, sha256, the pixel size and the bytes), served by
 `/api/panoramas/[id]` with the same immutable cache. A 3072×1536 WebP is about

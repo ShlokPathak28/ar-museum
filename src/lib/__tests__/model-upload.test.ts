@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   MAX_MODEL_BYTES,
+  checkModelFile,
   formatBytes,
   inspectGlb,
   safeFilename,
@@ -37,6 +38,34 @@ function glb(options: { draco?: boolean; version?: number; magic?: string; json?
   bytes.set(padded, 20);
   return bytes;
 }
+
+describe("checkModelFile", () => {
+  // The browser runs this before sending anything, so it has to answer from the
+  // name and the size alone — and with the same sentence the server would use.
+  it("accepts a .glb at or under the cap", () => {
+    expect(checkModelFile("hookah.glb", 1024)).toEqual({ ok: true });
+    expect(checkModelFile("HOOKAH.GLB", MAX_MODEL_BYTES)).toEqual({ ok: true });
+  });
+
+  it("refuses the wrong extension before reading the file", () => {
+    expect(checkModelFile("hookah.blend", 1024)).toMatchObject({
+      ok: false,
+      error: expect.stringContaining("Only binary glTF"),
+    });
+  });
+
+  it("names the actual size and the cap, and says how to shrink it", () => {
+    const result = checkModelFile("scan.glb", MAX_MODEL_BYTES + 1);
+    expect(result).toMatchObject({
+      ok: false,
+      error: expect.stringContaining("4.0 MB"),
+    });
+    expect(result).toMatchObject({
+      ok: false,
+      error: expect.stringContaining("gltf-transform"),
+    });
+  });
+});
 
 describe("inspectGlb", () => {
   it("accepts a version 2 binary and reports its size", () => {

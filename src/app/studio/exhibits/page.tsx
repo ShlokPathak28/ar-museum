@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { prisma } from "@/lib/db";
 import { formatDate } from "@/lib/format-date";
+import { formatBytes } from "@/lib/model-upload";
 
 import PublishToggle from "./PublishToggle";
 
@@ -31,6 +32,9 @@ export default async function StudioExhibitsPage({ searchParams }: Props) {
       orderBy: [{ updatedAt: "desc" }],
       include: {
         room: { select: { name: true, slug: true } },
+        // Which objects have a 3D model is the thing the Studio could not show:
+        // a missing upload was invisible from this table.
+        modelAsset: { select: { size: true } },
         _count: { select: { reviews: true, stamps: true } },
       },
     }),
@@ -131,6 +135,22 @@ export default async function StudioExhibitsPage({ searchParams }: Props) {
                       >
                         {exhibit.title}
                       </Link>
+                      <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.16em]">
+                        {exhibit.modelAsset ? (
+                          <span className="text-ink-soft">
+                            3D · {formatBytes(exhibit.modelAsset.size)}
+                          </span>
+                        ) : exhibit.modelUrl ? (
+                          <span className="text-ink-soft">3D · linked</span>
+                        ) : (
+                          <Link
+                            href={`/studio/exhibits/${exhibit.id}#the-3d-model`}
+                            className="text-rust hover:underline"
+                          >
+                            3D · none — add a model
+                          </Link>
+                        )}
+                      </p>
                     </td>
                     <td className="px-4 py-3 text-ink-soft">{exhibit.room.name}</td>
                     <td className="px-4 py-3">

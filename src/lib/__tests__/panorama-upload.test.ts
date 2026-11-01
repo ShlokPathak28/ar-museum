@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   MAX_PANORAMA_BYTES,
+  checkPanoramaFile,
   inspectPanorama,
   safePanoramaFilename,
 } from "@/lib/panorama-upload";
@@ -67,6 +68,28 @@ function jpeg(width: number, height: number) {
   bytes[29] = 3; // components
   return bytes;
 }
+
+describe("checkPanoramaFile", () => {
+  // Runs in the browser before a byte is sent; the server runs it again.
+  it("accepts WebP and JPEG at or under the cap", () => {
+    expect(checkPanoramaFile("room.webp", 1024)).toEqual({ ok: true });
+    expect(checkPanoramaFile("room.JPG", MAX_PANORAMA_BYTES)).toEqual({ ok: true });
+  });
+
+  it("refuses anything that is not a WebP or JPEG", () => {
+    expect(checkPanoramaFile("room.png", 1024)).toMatchObject({
+      ok: false,
+      error: expect.stringContaining("WebP or JPEG"),
+    });
+  });
+
+  it("names the actual size and the cap", () => {
+    expect(checkPanoramaFile("room.webp", MAX_PANORAMA_BYTES + 1)).toMatchObject({
+      ok: false,
+      error: expect.stringContaining("4.0 MB"),
+    });
+  });
+});
 
 describe("inspectPanorama", () => {
   it("accepts the house size in every container the browser produces", () => {

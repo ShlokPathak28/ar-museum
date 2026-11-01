@@ -95,21 +95,26 @@ context, which is why this is not optional.
 
 ### Adding a model from the Studio
 
-Open an exhibit in `/studio/exhibits/<id>` and use **Upload a model** in the
-media fieldset. The `.glb` is stored as a row in the database (Vercel's
-filesystem is read-only at runtime) and served from `/api/models/<id>`; the
-exhibit's `modelUrl` is swapped in the same transaction, so the change is live
-on the public page as soon as the upload finishes. There is no redeploy.
+Open an exhibit in `/studio/exhibits/<id>` and find the **The 3D model** section —
+it has its own fieldset, and the jump row at the top of the form links straight
+to it. The exhibits list also shows `3D · none — add a model` under any object
+without one. The `.glb` is stored as a row in the database (Vercel's filesystem
+is read-only at runtime) and served from `/api/models/<id>`; the exhibit's
+`modelUrl` is swapped in the same transaction, so the change is live on the
+public page as soon as the upload finishes. There is no redeploy.
 
 - **Cap: 4 MB.** Vercel caps a function request at 4.5 MB. Compress first:
   `npx @gltf-transform/cli optimize in.glb out.glb --texture-compress webp`.
+- The file is checked in the browser before it is sent — wrong extension or
+  over the cap is refused immediately, with the same wording the server uses.
+  The server checks again; the form is not a gate.
 - The uploader checks the GLB header and JSON chunk server-side, and reports
   whether the geometry is Draco-compressed.
 - **Source and licence** is shown on `/credits`; type it when you upload, and
   use **Save source line** to correct it later without replacing the file.
 - Saving the exhibit with the field cleared deletes the stored bytes.
 - A new exhibit must be saved once before it can take an upload — the model
-  needs an exhibit id to belong to.
+  needs an exhibit id to belong to. Creating it lands on the uploader.
 - Object storage (Vercel Blob, R2) is the documented upgrade path when files
   outgrow 4 MB; see `docs/ARCHITECTURE.md`.
 
@@ -289,6 +294,14 @@ because Turso is in `ap-south-1`. Served from `iad1` (the default) each
 round trip costs ~200 ms and the Studio feels broken. Locally, a first visit to
 a Studio route is Turbopack compiling it; after that it renders in well under a
 second.
+
+**The model upload sits on "Uploading…" for minutes.** That is usually the
+upload, not a hang: the whole file goes out in one request, so a 4 MB model on a
+slow upstream can take minutes. The button reports the size and elapsed seconds,
+and nothing is stored until the request finishes. A file over the 4 MB cap is
+refused before it is sent, so it cannot be a size problem if the check passed.
+If the message says the server refused the body, the file is too big for the
+platform, not a network fault.
 
 ## Notes for the report
 

@@ -24,6 +24,8 @@ export type GlbInspection =
   | { ok: true; size: number; draco: boolean }
   | { ok: false; error: string };
 
+export type FileCheck = { ok: true } | { ok: false; error: string };
+
 export function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
@@ -37,7 +39,16 @@ export function safeFilename(name: string): string {
   return cleaned === "" ? "model.glb" : cleaned;
 }
 
-export function inspectGlb(filename: string, bytes: Uint8Array): GlbInspection {
+/**
+ * The checks that need only a name and a size, shared by the browser and the
+ * server so a file is refused with the same sentence in both places.
+ *
+ * The browser can run this the moment a file is chosen: a 40 MB Blender export
+ * should not spend two minutes uploading only to be told it was always too big.
+ * The server still calls it (through `inspectGlb`), because a Server Action is
+ * a public endpoint and the input field is not a gate.
+ */
+export function checkModelFile(filename: string, size: number): FileCheck {
   if (!/\.glb$/i.test(filename.trim())) {
     return {
       ok: false,
@@ -45,14 +56,21 @@ export function inspectGlb(filename: string, bytes: Uint8Array): GlbInspection {
     };
   }
 
-  if (bytes.byteLength > MAX_MODEL_BYTES) {
+  if (size > MAX_MODEL_BYTES) {
     return {
       ok: false,
-      error: `That file is ${formatBytes(bytes.byteLength)}. The cap is ${formatBytes(
+      error: `That file is ${formatBytes(size)}. The cap is ${formatBytes(
         MAX_MODEL_BYTES,
       )} — compress it with \`npx @gltf-transform/cli optimize\` first.`,
     };
   }
+
+  return { ok: true };
+}
+
+export function inspectGlb(filename: string, bytes: Uint8Array): GlbInspection {
+  const check = checkModelFile(filename, bytes.byteLength);
+  if (!check.ok) return check;
 
   // Header (12) + one chunk header (8).
   if (bytes.byteLength < 20) {

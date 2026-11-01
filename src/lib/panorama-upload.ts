@@ -10,7 +10,7 @@
  * browser. Dimensions are read straight from the JPEG/WebP header; no decoder,
  * no dependency.
  */
-import { formatBytes } from "@/lib/model-upload";
+import { formatBytes, type FileCheck } from "@/lib/model-upload";
 
 /** 4 MB, the same cap as a model upload and for the same reason (Vercel's 4.5 MB body limit). */
 export const MAX_PANORAMA_BYTES = 4 * 1024 * 1024;
@@ -122,10 +122,13 @@ function readWebpDimensions(bytes: Uint8Array, view: DataView): Dimensions | nul
 }
 
 /**
- * Read the format and the pixel size, then decide whether this is a panorama
- * the room viewer can wrap: 2:1, at least 1024 px wide, under the cap.
+ * The name-and-size checks, shared by the browser and the server so both refuse
+ * a file with the same sentence. The browser runs it as soon as a file is
+ * chosen — a 12 MB photograph should not be uploaded for two minutes before it
+ * is told it was never going to fit. `inspectPanorama` still runs it too: the
+ * action is a public endpoint, not a form.
  */
-export function inspectPanorama(filename: string, bytes: Uint8Array): PanoramaInspection {
+export function checkPanoramaFile(filename: string, size: number): FileCheck {
   if (!/\.(webp|jpe?g)$/i.test(filename.trim())) {
     return {
       ok: false,
@@ -133,14 +136,25 @@ export function inspectPanorama(filename: string, bytes: Uint8Array): PanoramaIn
     };
   }
 
-  if (bytes.byteLength > MAX_PANORAMA_BYTES) {
+  if (size > MAX_PANORAMA_BYTES) {
     return {
       ok: false,
-      error: `That image is ${formatBytes(bytes.byteLength)}. The cap is ${formatBytes(
+      error: `That image is ${formatBytes(size)}. The cap is ${formatBytes(
         MAX_PANORAMA_BYTES,
       )} — re-encode it at 3072×1536 WebP.`,
     };
   }
+
+  return { ok: true };
+}
+
+/**
+ * Read the format and the pixel size, then decide whether this is a panorama
+ * the room viewer can wrap: 2:1, at least 1024 px wide, under the cap.
+ */
+export function inspectPanorama(filename: string, bytes: Uint8Array): PanoramaInspection {
+  const check = checkPanoramaFile(filename, bytes.byteLength);
+  if (!check.ok) return check;
 
   if (bytes.byteLength < 30) {
     return { ok: false, error: "That file is too small to be an image." };

@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import { MAX_MODEL_BYTES, formatBytes } from "@/lib/model-upload";
+import { MAX_MODEL_BYTES, checkModelFile, formatBytes } from "@/lib/model-upload";
 
 import { uploadModel, updateModelCredit } from "./actions";
 
@@ -30,6 +30,13 @@ type Stored = { filename: string; size: number; draco: boolean };
  * `/api/models/[id]`. The upload takes effect immediately (the action swaps the
  * exhibit's URL in the same transaction and revalidates), which is why the
  * button says so rather than hiding behind "Save".
+ *
+ * The file is checked here before a byte is sent, with the same helper the
+ * action uses. A 40 MB export used to spend minutes uploading only to be told
+ * it was always too big; now it is refused in the time it takes to read the
+ * name. A slow connection still takes minutes for a legitimate 4 MB model, so
+ * the button reports the size and how long it has been sending — a static
+ * "Uploading…" reads as a hang.
  */
 export default function ModelUpload({
   exhibitId,
@@ -38,15 +45,51 @@ export default function ModelUpload({
   onChange,
 }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
+  const startedAt = useRef(0);
   const [credit, setCredit] = useState(initialCredit);
   const [savedCredit, setSavedCredit] = useState(initialCredit);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [stored, setStored] = useState<Stored | null>(null);
+  const [selected, setSelected] = useState<{ name: string; size: number } | null>(null);
+  const [seconds, setSeconds] = useState(0);
 
   const uploaded = value.startsWith("/api/models/");
   const creditChanged = credit.trim() !== savedCredit.trim();
+
+  // A count, not a progress bar: the bytes go out in one Server Action request,
+  // which cannot report how much of the body has arrived.
+  useEffect(() => {
+    if (!busy) return;
+
+    const timer = setInterval(() => {
+      setSeconds(Math.round((Date.now() - startedAt.current) / 1000));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [busy]);
+
+  function choose(file: File | undefined) {
+    setError(null);
+    setNotice(null);
+
+    if (!file) {
+      setSelected(null);
+      return;
+    }
+
+    setSelected({ name: file.name, size: file.size });
+
+    const check = checkModelFile(file.name, file.size);
+    if (!check.ok) {
+      setError(check.error);
+      setSelected(null);
+      // Clearing the input means the rejected file cannot be submitted by a
+      // later click on Upload; the visitor has to choose something else.
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }
 
   async function submit() {
     setError(null);
@@ -58,7 +101,17 @@ export default function ModelUpload({
       return;
     }
 
+    // The input can outlive the check (a file chosen before this code shipped,
+    // or a browser that keeps the value), so the rule runs again here.
+    const check = checkModelFile(file.name, file.size);
+    if (!check.ok) {
+      setError(check.error);
+      return;
+    }
+
     setBusy(true);
+    setSeconds(0);
+    startedAt.current = Date.now();
 
     try {
       const data = new FormData();
@@ -76,9 +129,11 @@ export default function ModelUpload({
       onChange(result.url);
       setStored({ filename: result.filename, size: result.size, draco: result.draco });
       setSavedCredit(credit.trim());
+      setSelected(null);
       if (fileRef.current) fileRef.current.value = "";
-    } catch {
-      setError("The upload was interrupted. Check the connection and try again.");
+    } catch (cause) {
+      const elapsed = Math.round((Date.now() - startedAt.current) / 1000);
+      setError(failureMessage(cause, elapsed));
     } finally {
       setBusy(false);
     }
@@ -88,6 +143,7 @@ export default function ModelUpload({
     setError(null);
     setNotice(null);
     setBusy(true);
+    startedAt.current = Date.now();
 
     try {
       const result = await updateModelCredit({ exhibitId, credit });
@@ -108,7 +164,7 @@ export default function ModelUpload({
 
   return (
     <div className="border border-ink/15 bg-chalk-deep/40 p-4">
-      <p className={labelClass}>Upload a model</p>
+      <p className={labelClass}>Upload a .glb</p>
       <p className={hintClass}>
         Stored in the database and served from{" "}
         <code className="font-mono text-[11px]">/api/models/…</code>. Up to{" "}
@@ -126,12 +182,20 @@ export default function ModelUpload({
             id="modelFile"
             type="file"
             accept=".glb,model/gltf-binary"
+            onChange={(event) => choose(event.currentTarget.files?.[0])}
             className={`${fieldClass} file:mr-3 file:border-0 file:bg-ink file:px-3 file:py-1 file:text-xs file:text-paper`}
             aria-describedby="modelFileHint"
           />
           <p id="modelFileHint" className={hintClass}>
             Only binary glTF. A Draco-compressed file is what keeps the exhibit page light.
           </p>
+
+          {selected && !error ? (
+            <p className="mt-1 text-xs leading-relaxed text-ink-soft">
+              Selected <span className="font-medium text-ink">{selected.name}</span> —{" "}
+              {formatBytes(selected.size)}. Ready to upload.
+            </p>
+          ) : null}
         </div>
 
         <div>
@@ -183,6 +247,15 @@ export default function ModelUpload({
             </>
           ) : null}
         </div>
+
+        {busy && selected ? (
+          <p role="status" className="text-sm leading-relaxed text-ink-soft">
+            Sending {formatBytes(selected.size)}… {seconds} s.{" "}
+            {seconds >= 20
+              ? "A slow connection can take minutes; the file is stored only when it finishes."
+              : "Nothing is stored until the whole file arrives."}
+          </p>
+        ) : null}
       </div>
 
       {error ? (
@@ -214,4 +287,28 @@ export default function ModelUpload({
       ) : null}
     </div>
   );
+}
+
+/**
+ * What to say when the Server Action throws. The client cannot see the response
+ * body of a rejected request, so the only honest options are "the server refused
+ * this before reading it" (a body-size rejection) and "it did not finish".
+ * Telling someone to check their connection when the file was simply too big is
+ * the message that made this look like a broken uploader.
+ */
+function failureMessage(cause: unknown, seconds: number): string {
+  const text = cause instanceof Error ? cause.message : String(cause ?? "");
+  const refused = /413|body exceeded|too large|maximum size|payload too large/i.test(text);
+
+  if (refused) {
+    return `The server refused the file before reading it — it is over the ${formatBytes(
+      MAX_MODEL_BYTES,
+    )} cap. Compress it and try again.`;
+  }
+
+  if (seconds >= 60) {
+    return `The upload had not finished after ${seconds} s, so nothing was stored. A slow connection can take minutes for a model this size; try again, or compress the file first.`;
+  }
+
+  return "The upload did not finish, so nothing was stored. Try again — if it keeps failing, compress the file below the 4 MB cap.";
 }
