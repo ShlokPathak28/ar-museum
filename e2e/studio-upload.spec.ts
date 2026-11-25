@@ -137,8 +137,70 @@ test("the uploader has its own section, and the list links straight to it", asyn
   const jump = page.getByRole("navigation", { name: "Sections of this form" });
   await expect(jump.getByRole("link", { name: /The 3D model/ })).toBeVisible();
 
-  // Creating an exhibit explains the two steps rather than showing a picker
-  // that would fail on an id that does not exist yet.
+  // Creating an exhibit now carries the picker: the file is staged on the page
+  // and uploaded once the row exists, so a new object is one save, not two.
   await page.goto("/studio/exhibits/new");
-  await expect(page.getByText("The uploader appears after the first save.")).toBeVisible();
+  await expect(page.getByLabel("GLB file")).toBeVisible();
+  await expect(page.getByText("The uploader appears after the first save.")).toHaveCount(0);
+});
+
+/**
+ * The single-page create path: label and model written together, then removed
+ * again so the suite leaves the collection exactly as it found it.
+ */
+test("a new exhibit and its model are created in one save", async ({ page }) => {
+  const TITLE = "E2E Single Page Object";
+
+  async function deleteFixture() {
+    await page.goto("/studio/exhibits");
+    const link = page.getByRole("link", { name: TITLE });
+
+    // A previous run that failed mid-test leaves the fixture behind.
+    if ((await link.count()) === 0) return;
+
+    await link.first().click();
+    page.once("dialog", (dialog) => dialog.accept());
+    await page.getByRole("button", { name: "Delete exhibit" }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "Exhibits" })).toBeVisible();
+  }
+
+  await signIn(page, ADMIN);
+  await deleteFixture();
+
+  await page.goto("/studio/exhibits/new");
+  await page.getByLabel("Title", { exact: true }).fill(TITLE);
+  await page.getByLabel("URL slug").fill("e2e-single-page");
+  await page.getByLabel("Short code").fill("ZZ01");
+  await page.getByLabel("Era").fill("Modern test");
+  await page
+    .getByLabel("Summary")
+    .fill("A fixture written by the browser suite to prove one save is enough.");
+  await page
+    .getByLabel("Exhibit text")
+    .fill("This object exists so the single-page create flow can be measured end to end.");
+  await page.getByLabel("Hero image").fill("/images/exhibits/terracotta-horse.jpg");
+
+  // Both halves of the flow are filled before anything is sent.
+  await page.getByLabel("Source and licence").fill("E2E fixture, CC0");
+  await page.getByLabel("GLB file").setInputFiles({
+    name: "e2e-single-page.glb",
+    mimeType: "model/gltf-binary",
+    buffer: GLB,
+  });
+
+  await page.getByRole("button", { name: "Create exhibit and upload model" }).click();
+
+  await expect(page).toHaveURL(/\/studio\/exhibits\/[a-z0-9]+$/);
+  await expect(page.getByRole("heading", { level: 1, name: TITLE })).toBeVisible();
+
+  const field = page.getByLabel("GLB model");
+  await expect(field).toHaveValue(/^\/api\/models\/[a-z0-9]+$/);
+
+  const url = await field.inputValue();
+  expect((await page.request.get(url)).status()).toBe(200);
+
+  await deleteFixture();
+
+  // Deleting the exhibit takes its stored model with it.
+  expect((await page.request.get(url)).status()).toBe(404);
 });

@@ -24,8 +24,10 @@ export default async function NewExhibitPage() {
         </p>
         <h1 className="mt-2 font-serif text-4xl tracking-tight">Add to the collection</h1>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink-soft">
-          Save it as a draft first. Nothing reaches the gallery until the status is Published, and
-          the QR code on the marker cards keeps working the moment it is.
+          The label, the wall text and the 3D model all live on this page. Choose a{" "}
+          <code className="font-mono text-[11px]">.glb</code> below and it uploads as part of
+          the save. Nothing reaches the gallery until the status is Published, and the QR code
+          on the marker cards keeps working the moment it is.
         </p>
       </div>
 

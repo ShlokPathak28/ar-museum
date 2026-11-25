@@ -3,14 +3,15 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 
-import { MAX_MODEL_BYTES, formatBytes } from "@/lib/model-upload";
+import { MAX_MODEL_BYTES, checkModelFile, formatBytes } from "@/lib/model-upload";
 import { exhibitAdminSchema, type ExhibitAdminValues } from "@/lib/schemas";
 
-import { saveExhibit } from "./actions";
+import { saveExhibit, uploadModel } from "./actions";
 import DeleteExhibitButton from "./DeleteExhibitButton";
+import ModelPicker from "./ModelPicker";
 import ModelUpload from "./ModelUpload";
 
 export type RoomOption = { id: string; name: string; floor: string };
@@ -21,6 +22,8 @@ type Props = {
   rooms: RoomOption[];
   /** Omitted when creating a new exhibit. */
   exhibit?: ExhibitFormInitial;
+  /** Set when the edit page was reached after a create whose upload failed. */
+  modelNotice?: string;
 };
 
 const fieldClass =
@@ -28,10 +31,31 @@ const fieldClass =
 const labelClass = "font-mono text-[11px] uppercase tracking-[0.2em] text-ink-soft";
 const hintClass = "mt-1 text-xs leading-relaxed text-ink-soft";
 
-export default function ExhibitForm({ rooms, exhibit }: Props) {
+export default function ExhibitForm({ rooms, exhibit, modelNotice }: Props) {
   const router = useRouter();
   const [formError, setFormError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+
+  // Create mode only: the file chosen here has nowhere to go until the exhibit
+  // exists, so it waits in memory and is uploaded straight after the save.
+  const [modelFile, setModelFile] = useState<File | null>(null);
+  const [modelCredit, setModelCredit] = useState("");
+  const [modelFileError, setModelFileError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadSeconds, setUploadSeconds] = useState(0);
+
+  // The clock starts when the upload stage begins, not when the form renders:
+  // an effect is the only place allowed to read the wall clock.
+  useEffect(() => {
+    if (!uploading) return;
+
+    const startedAt = Date.now();
+    const timer = setInterval(() => {
+      setUploadSeconds(Math.round((Date.now() - startedAt) / 1000));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [uploading]);
 
   const {
     register,
@@ -66,9 +90,28 @@ export default function ExhibitForm({ rooms, exhibit }: Props) {
   // incompatible-library); `useWatch` subscribes to one field instead.
   const modelUrl = useWatch({ control, name: "modelUrl" }) ?? "";
 
+  // The button says what the press will actually do: a staged file makes the
+  // save two server round trips, and hiding that would be a surprise.
+  const submitLabel = exhibit
+    ? "Save changes"
+    : modelFile
+      ? "Create exhibit and upload model"
+      : "Create exhibit";
+
   const onSubmit = handleSubmit(async (values) => {
     setFormError(null);
     setSaved(false);
+    setModelFileError(null);
+
+    // The picker checked this already; the rule runs again because the input can
+    // outlive the check and a rejected file must never be sent.
+    if (modelFile) {
+      const check = checkModelFile(modelFile.name, modelFile.size);
+      if (!check.ok) {
+        setModelFileError(check.error);
+        return;
+      }
+    }
 
     const result = await saveExhibit({ ...values, id: exhibit?.id });
 
@@ -85,9 +128,39 @@ export default function ExhibitForm({ rooms, exhibit }: Props) {
     }
 
     if (!exhibit) {
-      // The new exhibit exists but has no model yet: land on the uploader
-      // rather than at the top of a form that looks unchanged.
-      router.replace(`/studio/exhibits/${result.id}#the-3d-model`);
+      // The row exists now, so a staged file has somewhere to attach. The two
+      // steps report separately: an upload that fails must not be blamed on the
+      // create, which succeeded and left a usable draft behind.
+      if (!modelFile) {
+        // No file chosen: land where the earlier fix put people — the model
+        // section — since a missing scan is the next thing to deal with.
+        router.replace(`/studio/exhibits/${result.id}#the-3d-model`);
+        router.refresh();
+        return;
+      }
+
+      setUploading(true);
+      setUploadSeconds(0);
+
+      const data = new FormData();
+      data.set("file", modelFile);
+      data.set("exhibitId", result.id);
+      data.set("credit", modelCredit);
+
+      try {
+        const upload = await uploadModel(data);
+
+        router.replace(
+          upload.ok
+            ? `/studio/exhibits/${result.id}`
+            : `/studio/exhibits/${result.id}?model=failed#the-3d-model`,
+        );
+      } catch {
+        // A body-limit rejection throws rather than returning; the exhibit is
+        // still created, so the editor explains and offers the picker again.
+        router.replace(`/studio/exhibits/${result.id}?model=failed#the-3d-model`);
+      }
+
       router.refresh();
       return;
     }
@@ -348,12 +421,21 @@ export default function ExhibitForm({ rooms, exhibit }: Props) {
       {/* The uploader used to sit inside "Media and model", below two URL
           fields, where it read as a third path input and was easy to miss. It
           is the usual way a model arrives, so it gets its own section and comes
-          first; the URL fields are the fallback for files already on the site. */}
+          first; the URL fields are the fallback for files already on the site.
+          On the create page the same section holds a picker that stages the
+          file, so a new object and its model are one save rather than two
+          screens. */}
       <fieldset id="the-3d-model" className="scroll-mt-28 space-y-5">
         <legend className="font-serif text-2xl tracking-tight">The 3D model</legend>
 
         {exhibit ? (
           <>
+            {modelNotice ? (
+              <p role="alert" className="border border-oxblood/30 bg-oxblood/10 px-4 py-3 text-sm text-oxblood">
+                {modelNotice}
+              </p>
+            ) : null}
+
             <p className={hintClass}>
               Choose a file and it uploads immediately — the model is live before you press
               Save. Up to {formatBytes(MAX_MODEL_BYTES)}.
@@ -366,13 +448,27 @@ export default function ExhibitForm({ rooms, exhibit }: Props) {
             />
           </>
         ) : (
-          <p className="border border-dashed border-ink/25 bg-paper px-4 py-3 text-sm leading-relaxed">
-            <span className="font-medium">The uploader appears after the first save.</span>{" "}
-            Creating this exhibit takes you straight back to this section, where you can choose
-            the .glb. A file already in{" "}
-            <code className="font-mono text-[11px]">/public/models</code> can be typed in below
-            now instead.
-          </p>
+          <>
+            <p className={hintClass}>
+              Optional. The file you choose is uploaded as part of this save, so the object
+              arrives with its model already attached. A chosen file wins over the URL field
+              below.
+            </p>
+            <ModelPicker
+              file={modelFile}
+              credit={modelCredit}
+              onFile={(file) => {
+                setModelFile(file);
+                setModelFileError(null);
+              }}
+              onCredit={setModelCredit}
+            />
+            {modelFileError ? (
+              <p role="alert" className="bg-oxblood/10 px-3 py-2 text-sm text-oxblood">
+                {modelFileError}
+              </p>
+            ) : null}
+          </>
         )}
 
         <div className="border-t border-ink/10 pt-5">
@@ -416,8 +512,16 @@ export default function ExhibitForm({ rooms, exhibit }: Props) {
           disabled={isSubmitting}
           className="bg-ink px-5 py-2.5 text-sm font-medium text-paper transition-colors hover:bg-oxblood disabled:opacity-60"
         >
-          {isSubmitting ? "Saving…" : exhibit ? "Save changes" : "Create exhibit"}
+          {isSubmitting ? (uploading ? `Uploading… ${uploadSeconds} s` : "Saving…") : submitLabel}
         </button>
+
+        {uploading && modelFile ? (
+          <p role="status" className="w-full text-sm leading-relaxed text-ink-soft">
+            Exhibit created. Uploading {modelFile.name} ({formatBytes(modelFile.size)})…{" "}
+            {uploadSeconds} s. Nothing is lost if this fails — the draft stays, and you can
+            choose the file again on the next screen.
+          </p>
+        ) : null}
 
         <Link
           href="/studio/exhibits"

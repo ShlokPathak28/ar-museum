@@ -661,6 +661,16 @@ what changed from the plan, and what the next week inherits.
 - **`bodySizeLimit` now matches reality.** It was `"5mb"`, above Vercel's 4.5 MB function ceiling, so it could never be reached in production. It is `"4.5mb"`: the 4 MB file cap plus multipart overhead, and the same number Vercel enforces.
 - **Verified:** `npm test` **138/138** (10 files); `npm run test:e2e` **28/28**, with two new cases — an over-cap file is refused with no POST leaving the browser, and the list link opens the section with the picker visible; `tsc`, `eslint --max-warnings=0` clean. Production was left untouched — no upload was sent to it — so its `ModelAsset` count is still 0.
 
+### Week 5 — one page to create an exhibit (25 Nov) — closed
+
+- **The complaint:** adding an object took two screens. You filled in the label, pressed **Create exhibit**, and the same form came back scrolled to its last section to choose the `.glb`. The report was "can't we make this a single page", and it was a fair reading of the flow.
+- **Why it was two:** `uploadModel` needs an exhibit id — the bytes are attached to a row, and the row does not exist until `saveExhibit` returns one. The old create page could not show a working picker, so it showed a paragraph explaining the split instead.
+- **The fix is one page, still two round trips.** `ModelPicker` holds the chosen file in memory on the create form — never read, never sent — and `ExhibitForm` posts it to `uploadModel` with the id `saveExhibit` just returned, then replaces the route with the editor. The button says what it will do: **Create exhibit and upload model**. Nothing added to the schema and no new dependency.
+- **A failed upload is not a failed create.** If the second step fails or throws (a body-limit rejection throws rather than returning), the label is already saved. The form navigates to `?model=failed#the-3d-model` and the editor says so plainly — "the exhibit was created, but its model did not finish uploading" — with the picker right there to try again.
+- **The checks did not move.** The picker runs `checkModelFile` before staging the file and the form runs it again before the save; `uploadModel` still reads the GLB header and re-checks the session, so the browser remains a convenience. The create page also wins a small honesty fix: a chosen file overrides the URL field below it, and the copy says so.
+- **The clock moved into an effect.** The elapsed-seconds counter reads `Date.now()` in a `useEffect`, not in the submit closure, because the React Compiler's purity rule treats an inline `handleSubmit` callback as render code. Same behaviour, no `react-hooks` exemption.
+- **Verified:** `npm test` **138/138** (10 files); `npm run test:e2e` **29/29**, with a new case that fills the label, picks a real GLB, presses one button, lands on the editor with `/api/models/<id>` in the field, fetches the bytes, then deletes the fixture and checks the model 404s; `tsc` and `eslint` clean on `src` and `e2e`.
+
 ### Week 3–4 — planned
 
 #### Stretch — themed room pages

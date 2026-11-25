@@ -13,7 +13,10 @@ export const metadata: Metadata = {
   title: "Edit exhibit",
 };
 
-type Props = { params: Promise<{ id: string }> };
+type Props = {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ model?: string }>;
+};
 
 function parseFacts(raw: string): string[] {
   try {
@@ -26,8 +29,9 @@ function parseFacts(raw: string): string[] {
   }
 }
 
-export default async function EditExhibitPage({ params }: Props) {
+export default async function EditExhibitPage({ params, searchParams }: Props) {
   const { id } = await params;
+  const { model } = await searchParams;
 
   const [exhibit, rooms] = await Promise.all([
     prisma.exhibit.findUnique({
@@ -73,6 +77,11 @@ export default async function EditExhibitPage({ params }: Props) {
       <div className="mt-8">
         <ExhibitForm
           rooms={rooms}
+          modelNotice={
+            model === "failed"
+              ? "The exhibit was created, but its model did not finish uploading. Choose the file again below — the label you just wrote is safe."
+              : undefined
+          }
           exhibit={{
             id: exhibit.id,
             slug: exhibit.slug,
