@@ -9,10 +9,10 @@ type ResetRequest = { user: ResetUser; url: string; token: string };
 /**
  * Better Auth creates the token, stores it with an expiry and consumes it on
  * the first successful reset. This module only decides how the link reaches the
- * person: Resend in production, the server log in development.
+ * person: SendGrid in production, the server log in development.
  */
 export function canDeliverPasswordResetEmails(): boolean {
-  // A developer without a Resend key still gets a usable flow: the link is
+  // A developer without a SendGrid key still gets a usable flow: the link is
   // printed by `sendPasswordResetEmail` instead of posted. Production must not
   // fall back to the log, because that would either leak a live token or
   // silently accept a request that can never result in an email.
@@ -54,7 +54,7 @@ export async function sendPasswordResetEmail({ user, url, token }: ResetRequest)
 
   if (!isMailConfigured()) {
     if (process.env.NODE_ENV === "production") {
-      throw new Error("Password-reset email is not configured: set RESEND_API_KEY and MAIL_FROM.");
+      throw new Error("Password-reset email is not configured: set SENDGRID_API_KEY and MAIL_FROM.");
     }
 
     // No token ever reaches a production log; this branch is development only.

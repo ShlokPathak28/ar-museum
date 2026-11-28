@@ -19,9 +19,9 @@ const serverEnvSchema = z.object({
   CLOUDINARY_API_KEY: z.string().optional(),
   CLOUDINARY_API_SECRET: z.string().optional(),
   // Password-reset mail. Both are optional: without them the reset page says so
-  // instead of accepting a request whose email can never arrive. Resend is used
+  // instead of accepting a request whose email can never arrive. SendGrid is used
   // through `fetch`, so no mail package joins the bundle.
-  RESEND_API_KEY: z.string().trim().optional(),
+  SENDGRID_API_KEY: z.string().trim().optional(),
   MAIL_FROM: z.string().trim().optional(),
 });
 

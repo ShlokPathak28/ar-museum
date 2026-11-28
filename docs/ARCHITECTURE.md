@@ -177,11 +177,13 @@ its sessions, accounts and reviews; scans and stamps keep their history with
 
 **Password reset stays inside Better Auth.** `emailAndPassword.sendResetPassword`
 in `src/lib/auth.ts` hands the user and token to `src/lib/password-reset.ts`,
-which sends the link through Resend over `fetch` — no mail package. Better Auth
-owns the token: one hour, single use, consumed in the transaction that writes
-the password, and `revokeSessionsOnPasswordReset` signs out every other device.
-The browser only calls `requestPasswordReset` and `resetPassword`; no Server
-Action touches the token. If `RESEND_API_KEY` and `MAIL_FROM` are absent in
+which sends the link through SendGrid over `fetch` — no mail package. A Single
+Sender verified by email is enough, so the demo needs no DNS domain; a verified
+domain is still the production-grade choice. Better Auth owns the token: one
+hour, single use, consumed in the transaction that writes the password, and
+`revokeSessionsOnPasswordReset` signs out every other device. The browser only
+calls `requestPasswordReset` and `resetPassword`; no Server Action touches the
+token. If `SENDGRID_API_KEY` and `MAIL_FROM` are absent in
 production, `/forgot-password` disables the form and says delivery is not
 configured rather than promising an email that cannot arrive. Development prints
 the link to the server log.

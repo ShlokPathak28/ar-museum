@@ -173,14 +173,17 @@ after one hour and consumes it in the same transaction as the password write,
 so a link works once and a failed attempt can be retried. A successful reset
 also signs out every other session.
 
-Delivery uses Resend through plain `fetch`, so there is no mail dependency:
+Delivery uses SendGrid through plain `fetch`, so there is no mail dependency.
+Verify a **Single Sender** in SendGrid under Settings → Sender Authentication —
+it is confirmed by email, so no DNS domain is needed for the demo:
 
 ```dotenv
-RESEND_API_KEY="re_..."
-MAIL_FROM="Dharohar <hello@your-verified-domain.example>"
+SENDGRID_API_KEY="SG..."
+MAIL_FROM="Dharohar <your-verified-sender@example.com>"
 ```
 
-Without both values, production shows that reset email is not configured rather
+Single Sender is meant for testing; a verified domain is still the right answer
+for production deliverability. Without both values, production shows that reset email is not configured rather
 than accepting a request that can never arrive. In development the link is
 printed to the dev server log instead, which is enough to exercise the flow
 without a provider.
@@ -212,7 +215,7 @@ e2e/                 Playwright specs
 ## Testing
 
 ```bash
-npm test                    # 145 unit tests
+npm test                    # 153 unit tests
 npm run test:e2e            # 32 end-to-end tests
 ```
 
@@ -242,8 +245,8 @@ Environment variables on Vercel (Production):
 | `BETTER_AUTH_SECRET` | 32 random bytes, base64 |
 | `NEXT_PUBLIC_SITE_URL` | `https://ar-museum-delta.vercel.app` |
 | `BETTER_AUTH_URL` | the same origin |
-| `RESEND_API_KEY` | a Resend key with permission to send (password reset) |
-| `MAIL_FROM` | a sender on a verified Resend domain |
+| `SENDGRID_API_KEY` | a SendGrid key with mail-send permission (password reset) |
+| `MAIL_FROM` | a Single Sender verified by email, or an address on a verified domain |
 
 The database pair is what differs by environment: on Vercel it points at Turso,
 and locally it lives in `.env.remote` (git-ignored), **not** `.env`. `next dev`

@@ -27,6 +27,7 @@ module by the same path the app uses.
 | `src/lib/__tests__/origin.test.ts` | `resolveOrigin` | `localhost` leaking into a QR code from a phone, a proxy's `x-forwarded-*` being ignored |
 | `src/lib/__tests__/model-upload.test.ts` | `inspectGlb`, `formatBytes`, `safeFilename` | A renamed `.obj` or a truncated GLB reaching the viewer; a 4 MB cap that is off by one; a filename that breaks `Content-Disposition` |
 | `src/lib/__tests__/user-admin.test.ts` | `checkRoleChange`, `checkUserDeletion`, `isUserRole` | An admin removing their own access, or the museum ending up with no admin; a role string the schema does not allow |
+| `src/lib/__tests__/mail-from.test.ts` | `parseMailFrom` | A bare address or `Name <email>` sender becoming a malformed SendGrid request; a quoted name or trailing whitespace being sent as part of the address |
 
 Not unit-tested: `passport.ts` and `session.ts`. Both start with `import
 "server-only"` and talk to Prisma/Next request state, so a unit test would mock
