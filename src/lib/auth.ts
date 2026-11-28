@@ -4,6 +4,8 @@ import { betterAuth } from "better-auth";
 import { nextCookies } from "@/lib/better-auth-next-js.mjs";
 import { prisma } from "@/lib/db";
 import { env } from "@/lib/env";
+import { sendPasswordResetEmail } from "@/lib/password-reset";
+import { MIN_PASSWORD_LENGTH } from "@/lib/schemas";
 
 /**
  * Server-side auth instance. Uses the app's single Prisma client (libSQL
@@ -22,9 +24,21 @@ export const auth = betterAuth({
   plugins: [nextCookies()],
   emailAndPassword: {
     enabled: true,
-    minPasswordLength: 8,
+    minPasswordLength: MIN_PASSWORD_LENGTH,
     // Signing up also signs you in; the visitor lands back on the site.
     autoSignIn: true,
+    // A reset link is valid for an hour and exactly once. Better Auth stores the
+    // token as a Verification row and consumes it inside the same transaction
+    // as the password write, so a failed reset can be retried with the same
+    // link but a successful one cannot be replayed.
+    resetPasswordTokenExpiresIn: 60 * 60,
+    // Changing a password logs out every other device. A visitor who reset
+    // because someone else had their password should not leave that session
+    // alive.
+    revokeSessionsOnPasswordReset: true,
+    sendResetPassword: async ({ user, url, token }) => {
+      await sendPasswordResetEmail({ user, url, token });
+    },
   },
   // Verbose session logging in dev only; there is no "silent" level, so the
   // logger is omitted entirely when no secret is configured.

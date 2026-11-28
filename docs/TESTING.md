@@ -19,7 +19,7 @@ module by the same path the app uses.
 
 | File | Covers | Failure it catches |
 |---|---|---|
-| `src/lib/__tests__/schemas.test.ts` | `reviewSchema`, `exhibitAdminSchema` | A form that accepts what the Server Action rejects (or the reverse): rating bounds, byte-length vs character-length, slug grammar, the 8-fact cap, status values |
+| `src/lib/__tests__/schemas.test.ts` | `reviewSchema`, `exhibitAdminSchema`, `roomAdminSchema`, `forgotPasswordSchema`, `resetPasswordSchema` | A form that accepts what the Server Action rejects (or the reverse): rating bounds, byte-length vs character-length, slug grammar, the 8-fact cap, status values, a password below the auth minimum, or two passwords that do not match |
 | `src/lib/__tests__/next-path.test.ts` | `safeNextPath`, `withNext` | `?next=` becoming an open redirect (`//evil.example`, `https://…`, backslash tricks) or an auth-page loop |
 | `src/lib/__tests__/format-date.test.ts` | `formatDate` | A server/browser hydration mismatch; the Kolkata day being read as the server's day |
 | `src/lib/__tests__/accent.test.ts` | `accentForTags` | Tag precedence (terracotta before the generic clay), case sensitivity, duplicate colours |
@@ -53,6 +53,7 @@ npm run test:e2e
 | `e2e/public.spec.ts` | Entrance → collection → object; filtering with the URL kept in sync; a room page and its 360 stage; `/x/TH01` redirecting to the right object with a device cookie; an unknown code falling back to `/exhibits` |
 | `e2e/a11y.spec.ts` | The skip link is the first Tab stop, becomes visible, and lands focus on `<main>`; the studio has its own; one `h1` and one `main#main` on every public route |
 | `e2e/auth.spec.ts` | Signed out → `/login?next=…` and back; `/passport` is private; an admin sees the office; a signed-in visitor gets **404** (not 403) and no Studio link |
+| `e2e/password-reset.spec.ts` | The login link opens `/forgot-password`; an unknown address gets the same confirmation as a real one; a registered fixture receives a token in the local database, spends it on `/reset-password`, signs in with the new password, and a token that was never issued is refused. The fixture account is deleted afterwards |
 | `e2e/reconstruction.spec.ts` | The Reconstruction tab decodes a Draco-compressed scan through `GLTFLoader` (which needs a decoder `model-viewer` gets for free), switches all three material states, and fetches the decoder from our own origin |
 | `e2e/studio-upload.spec.ts` | An admin uploads a real GLB to the draft exhibit, the field becomes `/api/models/<id>`, the route serves the exact bytes with `immutable`, the source line can be corrected without re-uploading, detaching and saving deletes the row (404); a file with the wrong magic bytes is refused before it is stored |
 | `e2e/studio-users.spec.ts` | `/studio/users` lists a fixture account, promotes it to ADMIN, demotes it to VISITOR, then deletes it after the confirm dialog; the signed-in admin's own row offers no role or delete controls |
@@ -99,9 +100,11 @@ keeps the run honest and still finishes in about 15 seconds. Set
   same exhibit. The people spec is the other: it inserts
   `e2e-users-…@dharohar.test` directly with `@libsql/client` (registering
   through the UI would replace the admin session under test) and deletes it in
-  `afterAll`; it is serial for the same reason. The Week 4 CRUD pass was
-  exercised by hand and recorded in `docs/PLAN.md`, because a test that edits
-  published content is a worse trade than a manual check.
+  `afterAll`; it is serial for the same reason. The reset spec registers its own
+  `e2e-reset-…@dharohar.test` account, removes its sessions, credential, reviews
+  and reset tokens afterwards, and never touches a seeded password. The Week 4
+  CRUD pass was exercised by hand and recorded in `docs/PLAN.md`, because a test
+  that edits published content is a worse trade than a manual check.
 - **The upload spec assumes the draft has no model.** If a run is interrupted
   mid-test, the first test detaches the leftover before uploading.
 - **The people spec clears stale fixtures first.** An interrupted run can leave

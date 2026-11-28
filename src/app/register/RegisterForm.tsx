@@ -6,8 +6,7 @@ import { useState } from "react";
 
 import { authClient } from "@/lib/auth-client";
 import { withNext } from "@/lib/next-path";
-
-const MIN_PASSWORD = 8;
+import { MIN_PASSWORD_LENGTH } from "@/lib/schemas";
 
 export default function RegisterForm({ next }: { next: string }) {
   const router = useRouter();
@@ -21,8 +20,8 @@ export default function RegisterForm({ next }: { next: string }) {
     event.preventDefault();
     setError(null);
 
-    if (password.length < MIN_PASSWORD) {
-      setError(`Use at least ${MIN_PASSWORD} characters.`);
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      setError(`Use at least ${MIN_PASSWORD_LENGTH} characters.`);
       return;
     }
 
@@ -92,12 +91,12 @@ export default function RegisterForm({ next }: { next: string }) {
           type="password"
           autoComplete="new-password"
           required
-          minLength={MIN_PASSWORD}
+          minLength={MIN_PASSWORD_LENGTH}
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           className="mt-1.5 w-full border border-ink/15 bg-paper px-3 py-2 text-sm outline-none focus-visible:border-oxblood"
         />
-        <p className="mt-1.5 text-xs text-ink-soft">At least {MIN_PASSWORD} characters.</p>
+        <p className="mt-1.5 text-xs text-ink-soft">At least {MIN_PASSWORD_LENGTH} characters.</p>
       </div>
 
       {error ? (

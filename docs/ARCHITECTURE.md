@@ -36,7 +36,7 @@ phone (QR → AR → 360°)        laptop (browse, Studio)
 | `/rooms`, `/rooms/[slug]` | static + ISR 60 s | same |
 | `/scan` | static + ISR 60 s; the camera is a client island (`ScanPanel`) | the page is a shell; only the scanner needs the browser |
 | `/passport` | dynamic, `force-dynamic`, `noindex` | personal data must never be cached or shared |
-| `/login`, `/register` | static shell + client form | Better Auth owns the endpoints |
+| `/login`, `/register`, `/forgot-password`, `/reset-password` | static shell + client form | Better Auth owns the endpoints and the reset token |
 | `/studio/**` | dynamic, admin layout | always fresh, never cached |
 | `/x/[code]` | route handler, `force-dynamic` | redirect + scan/stamp write + device cookie |
 | `/api/qr/[code]` | route handler | PNG for a printed card |
@@ -174,6 +174,17 @@ account, and the last admin cannot be demoted or deleted — two lockout mistake
 that are cheaper to prevent than to recover from. Deleting an account cascades
 its sessions, accounts and reviews; scans and stamps keep their history with
 `userId` set to NULL, so visitor numbers do not fall when a person leaves.
+
+**Password reset stays inside Better Auth.** `emailAndPassword.sendResetPassword`
+in `src/lib/auth.ts` hands the user and token to `src/lib/password-reset.ts`,
+which sends the link through Resend over `fetch` — no mail package. Better Auth
+owns the token: one hour, single use, consumed in the transaction that writes
+the password, and `revokeSessionsOnPasswordReset` signs out every other device.
+The browser only calls `requestPasswordReset` and `resetPassword`; no Server
+Action touches the token. If `RESEND_API_KEY` and `MAIL_FROM` are absent in
+production, `/forgot-password` disables the form and says delivery is not
+configured rather than promising an email that cannot arrive. Development prints
+the link to the server log.
 
 Review mutations follow the same rule at a smaller scale: `saveReview` and
 `deleteReview` re-read the session and re-check ownership before writing.

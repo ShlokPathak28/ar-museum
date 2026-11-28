@@ -7,10 +7,11 @@ through the gallery. Admins run the museum from `/studio`; visitors collect
 stamps and leave reviews.
 
 **Status:** Week 5. Accessibility, tests, the performance pass, model upload,
-rooms with 360° panoramas, people management and the deploy are done — the site
-runs at **https://ar-museum-delta.vercel.app**. The demo recording and two
-rehearsals are what remain. Admins can add a 3D model, create a room and upload
-its panorama, and manage visitor accounts from the Studio, without a redeploy.
+rooms with 360° panoramas, people management, password reset and the deploy are
+done — the site runs at **https://ar-museum-delta.vercel.app**. The demo
+recording and two rehearsals are what remain. Admins can add a 3D model, create a
+room and upload its panorama, and manage visitor accounts from the Studio,
+without a redeploy.
 **Full plan and progress log:** [docs/PLAN.md](docs/PLAN.md)
 
 ---
@@ -31,8 +32,9 @@ its panorama, and manage visitor accounts from the Studio, without a redeploy.
 ## Demo accounts
 
 These exist in the local `prisma/dev.db`, **not** in the seed — a fresh clone
-starts with no users. The deployed site has its own `admin@dharohar.test` with
-the same password, created once by hand.
+starts with no users. The production database no longer carries demo accounts;
+its administrator is a real registered account promoted with
+`npm run db:admin:remote -- someone@example.com`.
 
 | Role | Email | Password |
 |---|---|---|
@@ -113,8 +115,10 @@ public page as soon as the upload finishes. There is no redeploy.
 - **Source and licence** is shown on `/credits`; type it when you upload, and
   use **Save source line** to correct it later without replacing the file.
 - Saving the exhibit with the field cleared deletes the stored bytes.
-- A new exhibit must be saved once before it can take an upload — the model
-  needs an exhibit id to belong to. Creating it lands on the uploader.
+- A new exhibit can stage the `.glb` on the create page. The form saves the
+  exhibit first, then uploads the file to the id it just received, so the object
+  and its model arrive in one save. If the second step fails, the draft is kept
+  and the editor offers the uploader again.
 - Object storage (Vercel Blob, R2) is the documented upgrade path when files
   outgrow 4 MB; see `docs/ARCHITECTURE.md`.
 
@@ -159,6 +163,28 @@ or deleted. Passwords are hashed by Better Auth and are never shown or edited
 here. The CLI (`npm run db:admin`) still works for the first admin, before
 anyone can reach `/studio/users`.
 
+### Forgotten passwords
+
+`/login` has a **Forgot password?** link beside the password field. It asks for
+the account email and always answers the same way — "if an account exists, a
+link is on its way" — so the form cannot be used to discover registered
+addresses. Better Auth stores the token as a `Verification` row, expires it
+after one hour and consumes it in the same transaction as the password write,
+so a link works once and a failed attempt can be retried. A successful reset
+also signs out every other session.
+
+Delivery uses Resend through plain `fetch`, so there is no mail dependency:
+
+```dotenv
+RESEND_API_KEY="re_..."
+MAIL_FROM="Dharohar <hello@your-verified-domain.example>"
+```
+
+Without both values, production shows that reset email is not configured rather
+than accepting a request that can never arrive. In development the link is
+printed to the dev server log instead, which is enough to exercise the flow
+without a provider.
+
 ## Project structure
 
 ```
@@ -186,8 +212,8 @@ e2e/                 Playwright specs
 ## Testing
 
 ```bash
-npm test                    # 105 unit tests
-npm run test:e2e            # 24 end-to-end tests
+npm test                    # 145 unit tests
+npm run test:e2e            # 32 end-to-end tests
 ```
 
 The e2e suite starts its own dev server and expects the demo accounts above.
@@ -216,6 +242,8 @@ Environment variables on Vercel (Production):
 | `BETTER_AUTH_SECRET` | 32 random bytes, base64 |
 | `NEXT_PUBLIC_SITE_URL` | `https://ar-museum-delta.vercel.app` |
 | `BETTER_AUTH_URL` | the same origin |
+| `RESEND_API_KEY` | a Resend key with permission to send (password reset) |
+| `MAIL_FROM` | a sender on a verified Resend domain |
 
 The database pair is what differs by environment: on Vercel it points at Turso,
 and locally it lives in `.env.remote` (git-ignored), **not** `.env`. `next dev`

@@ -1,12 +1,63 @@
 import { describe, expect, it } from "vitest";
 
-import { exhibitAdminSchema, reviewSchema, roomAdminSchema } from "@/lib/schemas";
+import {
+  MIN_PASSWORD_LENGTH,
+  exhibitAdminSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+  reviewSchema,
+  roomAdminSchema,
+} from "@/lib/schemas";
 
 /**
  * These schemas are the contract between a form and a Server Action. The
  * browser runs them for a friendly message; the action runs them again because
  * the browser can be bypassed. A widening on either side is a bug.
  */
+
+describe("forgotPasswordSchema", () => {
+  it("trims the address it will send to", () => {
+    const result = forgotPasswordSchema.safeParse({ email: "  sujal@example.com  " });
+
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.email).toBe("sujal@example.com");
+  });
+
+  it.each(["", "not-an-email", "two words@example.com"])("rejects %s", (email) => {
+    expect(forgotPasswordSchema.safeParse({ email }).success).toBe(false);
+  });
+});
+
+describe("resetPasswordSchema", () => {
+  it("accepts two matching passwords of the minimum length", () => {
+    const password = "x".repeat(MIN_PASSWORD_LENGTH);
+
+    expect(
+      resetPasswordSchema.safeParse({ newPassword: password, confirmPassword: password }).success,
+    ).toBe(true);
+  });
+
+  it("refuses a password one character under the minimum", () => {
+    const password = "x".repeat(MIN_PASSWORD_LENGTH - 1);
+
+    expect(
+      resetPasswordSchema.safeParse({ newPassword: password, confirmPassword: password }).success,
+    ).toBe(false);
+  });
+
+  it("puts a mismatch on the confirmation field, where the form shows it", () => {
+    const result = resetPasswordSchema.safeParse({
+      newPassword: "museum-pass-2026",
+      confirmPassword: "museum-pass-2025",
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0]?.path).toEqual(["confirmPassword"]);
+      expect(result.error.issues[0]?.message).toBe("The two passwords do not match.");
+    }
+  });
+});
 
 const validExhibit = {
   slug: "bidri-hookah-base",
@@ -27,8 +78,7 @@ const validExhibit = {
   status: "DRAFT",
 } as const;
 
-describe("reviewSchema", () => {
-  it("accepts a whole-star rating with a trimmed body", () => {
+describe("reviewSchema", () => {  it("accepts a whole-star rating with a trimmed body", () => {
     const result = reviewSchema.safeParse({ rating: 4, body: "  A quiet, careful object.  " });
 
     expect(result.success).toBe(true);

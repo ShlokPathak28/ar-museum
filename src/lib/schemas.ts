@@ -1,6 +1,12 @@
 import { z } from "zod";
 
 /**
+ * Better Auth's `minPasswordLength`. Shared with the reset form so the browser
+ * refuses a short password with the same rule the auth endpoint will apply.
+ */
+export const MIN_PASSWORD_LENGTH = 8;
+
+/**
  * One review per visitor per exhibit. The same schema validates the form in the
  * browser and the Server Action, so a client can never widen the rules.
  */
@@ -18,6 +24,32 @@ export const reviewSchema = z.object({
 });
 
 export type ReviewValues = z.infer<typeof reviewSchema>;
+
+/**
+ * The two halves of a password reset. There is no Server Action here: Better
+ * Auth owns the endpoints and the token lifecycle, so these schemas only decide
+ * whether the browser should send the request at all.
+ */
+export const forgotPasswordSchema = z.object({
+  email: z.string().trim().email("Enter the email address you signed up with."),
+});
+
+export type ForgotPasswordValues = z.infer<typeof forgotPasswordSchema>;
+
+export const resetPasswordSchema = z
+  .object({
+    newPassword: z
+      .string()
+      .min(MIN_PASSWORD_LENGTH, `Use at least ${MIN_PASSWORD_LENGTH} characters.`)
+      .max(128, "Keep the password under 128 characters."),
+    confirmPassword: z.string().min(1, "Repeat the new password."),
+  })
+  .refine((value) => value.newPassword === value.confirmPassword, {
+    path: ["confirmPassword"],
+    message: "The two passwords do not match.",
+  });
+
+export type ResetPasswordValues = z.infer<typeof resetPasswordSchema>;
 
 /**
  * Studio forms. Every field arrives as a string from an input, so years and
